@@ -1,0 +1,54 @@
+groups:
+  - name: redone-disponibilite
+    rules:
+      - alert: HoteInjoignable
+        expr: up == 0
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.instance }} ({{ $labels.job }}) ne répond plus depuis 3 minutes"
+
+  - name: redone-ressources
+    rules:
+      - alert: CPUEleve
+        expr: 100 - (avg by (instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "CPU > 90 % sur {{ $labels.instance }} ({{ $value | printf \"%.0f\" }} %)"
+
+      - alert: MemoireFaible
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Moins de 10 % de RAM disponible sur {{ $labels.instance }}"
+
+      - alert: EspaceDisqueFaible
+        expr: (node_filesystem_avail_bytes{fstype!~"tmpfs|overlay|squashfs"} / node_filesystem_size_bytes{fstype!~"tmpfs|overlay|squashfs"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Moins de 10 % d'espace libre sur {{ $labels.mountpoint }} ({{ $labels.instance }})"
+
+  - name: redone-securite
+    rules:
+      - alert: ClamAVArrete
+        expr: clamav_up == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "L'antivirus ClamAV ne répond plus sur {{ $labels.instance }}"
+
+      - alert: SignaturesClamAVObsoletes
+        expr: time() - clamav_db_updated_timestamp_seconds > 2 * 86400
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Base de signatures ClamAV non mise à jour depuis plus de 48 h sur {{ $labels.instance }}"
