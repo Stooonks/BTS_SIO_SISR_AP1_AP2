@@ -40,23 +40,59 @@ Schéma réseau : `captures/schema_reseau.png` *(réalisé par Fahim, à ajouter
 
 ## 3. Plan d'adressage
 
-### 3.1 Services communs
+L'adressage de la maquette reprend le plan VLAN du cahier des charges RedOne (voir [CONTEXTE_RedOne.md](../CONTEXTE_RedOne.md#3-segmentation-réseau-vlan)). Le commutateur de niveau 3 **MUTLAB**, qui fait le routage inter-VLAN avec des ACL chez RedOne, est remplacé dans la maquette par **pfSense** (routage inter-VLAN + règles de pare-feu).
 
-| Service | IP | VLAN ID | VMID Proxmox |
+> [!NOTE]
+> **Proposition à valider avec l'équipe** (Xavier et Loïc pour les VLAN déjà créés sur pfSense). Supprimer cet encadré une fois le plan validé et appliqué.
+
+### 3.1 VLAN RedOne et correspondance dans la maquette
+
+Les VLAN ID RedOne (10 à 400) chevauchent les plages réservées aux étudiants sur le Proxmox partagé (200 à 899). Dans la maquette, chaque VLAN RedOne est donc renuméroté dans la plage commune **100 – 199**, avec la règle **VLAN maquette = 100 + VLAN RedOne / 10**.
+
+| VLAN RedOne | VLAN maquette | Service(s) | Réseau | Passerelle (pfSense) |
+|---|---|---|---|---|
+| 10 | 101 | Réseau & Système | `192.168.10.0/24` | `192.168.10.254` |
+| 20 | 102 | Direction / DSI | `192.168.20.0/24` | `192.168.20.254` |
+| 30 | 103 | RH / Compta / Juridique / Secrétariat | `192.168.30.0/24` | `192.168.30.254` |
+| 40 | 104 | Communication / Rédaction | `192.168.40.0/24` | `192.168.40.254` |
+| 50 | 105 | Développement | `192.168.50.0/24` | `192.168.50.254` |
+| 60 | 106 | Commercial | `192.168.60.0/24` | `192.168.60.254` |
+| 70 | 107 | Labo-Recherche | `192.168.70.0/24` | `192.168.70.254` |
+| 100 | 110 | Accueil | `192.168.110.0/24` ⚠️ | `192.168.110.254` |
+| 150 | 115 | Visiteurs | `192.168.150.0/24` | `192.168.150.254` |
+| 200 | 120 | Démonstration | `192.168.200.0/24` | `192.168.200.254` |
+| 300 | 130 | Serveurs | `172.16.0.0/17` | `172.16.127.254` |
+| 400 | 140 | Sortie (vers le WAN) | `172.18.0.0/30` | `172.18.0.1` (pfSense) / `172.18.0.2` (routeur de sortie) |
+
+⚠️ **Seul écart avec RedOne :** le réseau `192.168.100.0/24` du VLAN Accueil est déjà utilisé par le réseau d'administration de la salle (interface Proxmox). Dans la maquette, le VLAN Accueil passe donc en `192.168.110.0/24`.
+
+### 3.2 Serveurs (VLAN Serveurs – `172.16.0.0/17`)
+
+| Service | IP cible RedOne | IP actuelle (maquette) | VMID |
 |---|---|---|---|
-| Active Directory | `192.168.100.2` | 100 – 199 | 100 – 199 |
-| GLPI | `192.168.100.50` | 100 – 199 | 100 – 199 |
-| Wazuh | `10.1.0.4` | 100 – 199 | 100 – 199 |
-| pfSense | `10.1.0.15` | 100 – 199 | 100 – 199 |
-| Grafana / Zabbix | `10.1.0.5` | 100 – 199 | 100 – 199 |
+| pfSense (interface Serveurs) | `172.16.127.254` | `10.1.0.15` | 100 – 199 |
+| Active Directory / DNS / DHCP | `172.16.0.1` | `192.168.100.2` ⚠️ | 100 – 199 |
+| GLPI | `172.16.0.50` | `192.168.100.50` | 100 – 199 |
+| Wazuh | `172.16.0.4` | `10.1.0.4` | 100 – 199 |
+| Zabbix / Grafana | `172.16.0.5` | `10.1.0.5` (ou `192.168.100.133`, à confirmer) | 100 – 199 |
+
+Les serveurs migrent de l'**IP actuelle** vers l'**IP cible** au fur et à mesure. Le DHCP de chaque VLAN utilisateur est relayé par pfSense vers l'AD (*Services → DHCP Relay*) ou servi directement par pfSense.
 
 > [!WARNING]
-> **Incohérences à lever avant le rendu** (supprimer cet encadré une fois corrigé) :
-> - pfSense apparaît en `10.0.1.251` (section 2) et en `10.1.0.15` (tableau ci-dessus) : préciser s'il s'agit de deux interfaces (WAN / LAN) ou d'une erreur.
-> - Zabbix est noté en `192.168.100.133` dans les notes et en `10.1.0.5` dans le tableau.
+> **Incohérences relevées dans l'existant** (supprimer cet encadré une fois corrigé) :
+> - pfSense est noté en `10.0.1.251` (section 2) et en `10.1.0.15` : vérifier s'il s'agit de deux interfaces (WAN / LAN).
 > - `192.168.100.2` est attribuée à la fois à Proxmox et à l'AD : une seule machine peut avoir cette adresse.
 
-### 3.2 Plages réservées par étudiant
+### 3.3 Hors plan RedOne
+
+| Réseau | Usage |
+|---|---|
+| `192.168.100.0/24` | Administration de la salle : interface web Proxmox (`192.168.100.2`) |
+| `10.0.1.0/24` | Côté WAN de pfSense (`10.0.1.251`, à passer en statique) |
+
+### 3.4 Plages réservées par étudiant (tests personnels)
+
+Ces plages servent aux VM de test de chaque étudiant, en dehors de l'infrastructure RedOne commune.
 
 | Étudiant | Réseaux internes | VLAN ID | VMID Proxmox |
 |---|---|---|---|
@@ -83,10 +119,25 @@ Convention : le VLAN ID et le VMID d'une machine sont pris dans la plage de son 
 
 ### 5.1 VLAN sur pfSense
 
-1. *Interfaces → Assignments → VLANs → Add* : interface parente, VLAN tag (dans la plage réservée), description.
-2. *Interfaces → Assignments* : affecter chaque VLAN à une interface, l'activer et lui donner une IP statique (passerelle du sous-réseau).
-3. *Services → DHCP Server* : activer le DHCP par VLAN si nécessaire.
-4. *Firewall → Rules* : créer les règles d'autorisation inter-VLAN.
+1. *Interfaces → Assignments → VLANs → Add* : interface parente, tag = **VLAN maquette** (tableau 3.1), description = nom du service RedOne (ex. `V101_RESEAU_SYSTEME`).
+2. *Interfaces → Assignments* : affecter chaque VLAN à une interface, l'activer et lui donner l'IP de passerelle du tableau 3.1.
+3. *Services → DHCP Server* (ou *DHCP Relay* vers l'AD) : un pool par VLAN utilisateur.
+4. *Firewall → Aliases* : créer `NET_SERVEURS` (`172.16.0.0/17`), `SRV_DNS_DHCP` (IP de l'AD) et `RFC1918` (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`).
+5. *Firewall → Rules* : appliquer les règles RedOne ci-dessous.
+
+#### Règles de filtrage RedOne (remplacent les ACL du commutateur MUTLAB)
+
+| Interface | # | Action | Source | Destination | Port | Rôle |
+|---|---|---|---|---|---|---|
+| VLAN 101 à 120 (sauf 115) | 1 | Pass | réseau du VLAN | `NET_SERVEURS` | tous | Accès aux serveurs |
+| VLAN 101 à 120 (sauf 115) | 2 | Pass | réseau du VLAN | ! `RFC1918` | tous | Sortie Internet (VLAN Sortie) |
+| VLAN 101 à 120 (sauf 115) | 3 | Block | réseau du VLAN | tous | tous | Pas d'accès aux autres VLAN |
+| VLAN 115 Visiteurs | 1 | Pass | réseau du VLAN | `SRV_DNS_DHCP` | 53 TCP/UDP, 67-68 UDP | DNS et DHCP uniquement |
+| VLAN 115 Visiteurs | 2 | Pass | réseau du VLAN | ! `RFC1918` | tous | Internet uniquement |
+| VLAN 115 Visiteurs | 3 | Block | réseau du VLAN | tous | tous | Isolement complet |
+| VLAN 130 Serveurs | 1 | Pass | `NET_SERVEURS` | tous | tous | Réponses et mises à jour |
+
+> pfSense lit les règles de haut en bas et applique la première qui correspond : l'ordre est important.
 
 Captures : `captures/pfsense_vlans.png`, `captures/pfsense_rules.png`
 
@@ -118,11 +169,16 @@ Get-NetFirewallRule -DisplayName "Diagnostics de réseau de base - Demande d'éc
 | # | Test | Commande / méthode | Résultat attendu | Résultat obtenu | ✅/❌ |
 |---|---|---|---|---|---|
 | 1 | Accès à l'interface Proxmox | navigateur → `https://192.168.100.2:8006` | Page de connexion | | |
-| 2 | Ping inter-VLAN via pfSense | `ping` depuis une VM de chaque VLAN | Réponse | | |
-| 3 | Ping d'un serveur Windows | `ping <IP serveur>` | Réponse après activation de la règle ICMP | | |
-| 4 | Groupes AD présents | `Get-ADGroup -Filter 'Name -like "*S*"'` | `BTS SIO1`, `SLAM`, `SISR` | | |
-| 5 | Accès GLPI | navigateur → `http://192.168.100.50` | Page de connexion GLPI | | |
-| 6 | IP statique pfSense | redémarrage pfSense puis vérification de l'IP | IP inchangée | | |
+| 2 | VLAN utilisateur → Serveurs | `ping 172.16.0.1` depuis une VM du VLAN 101 | Réponse | | |
+| 3 | VLAN utilisateur → autre VLAN | `ping 192.168.30.254` depuis une VM du VLAN 106 | Pas de réponse (bloqué) | | |
+| 4 | VLAN utilisateur → Internet | `ping 1.1.1.1` depuis une VM du VLAN 102 | Réponse | | |
+| 5 | Visiteurs → DNS | `nslookup redone.local 172.16.0.1` depuis le VLAN 115 | Résolution OK | | |
+| 6 | Visiteurs → autre serveur | `ping 172.16.0.50` (GLPI) depuis le VLAN 115 | Pas de réponse (bloqué) | | |
+| 7 | Visiteurs → Internet | navigateur → site public | Page affichée | | |
+| 8 | Ping d'un serveur Windows | `ping <IP serveur>` | Réponse après activation de la règle ICMP | | |
+| 9 | Groupes AD présents | `Get-ADGroup -Filter 'Name -like "*S*"'` | `BTS SIO1`, `SLAM`, `SISR` | | |
+| 10 | Accès GLPI | navigateur → IP de GLPI (tableau 3.2) | Page de connexion GLPI | | |
+| 11 | IP statique pfSense | redémarrage pfSense puis vérification de l'IP | IP inchangée | | |
 
 ## 7. Gestion des secrets
 
