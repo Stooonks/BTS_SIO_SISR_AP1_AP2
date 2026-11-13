@@ -1,9 +1,10 @@
 # BTS SIO SISR – AP1 / AP2
 
-Dépôt de documentation des ateliers professionnels (AP) réalisés en équipe sur l'infrastructure Proxmox de la section.
+Dépôt de documentation des ateliers professionnels (AP) réalisés en équipe sur l'infrastructure Proxmox de la section, dans le contexte du laboratoire pharmaceutique **RedOne**.
 
 | Dossier | Contenu |
 |---|---|
+| [`CONTEXTE_RedOne.md`](CONTEXTE_RedOne.md) | Contexte de l'entreprise, SI existant, plan VLAN, besoins et axes d'évolution |
 | [`AP1/`](AP1/AP1_Systeme_Information.md) | Conception et mise en place du système d'information : adressage, VLAN, pfSense, Active Directory, GLPI |
 | [`AP2/`](AP2/AP2_Exploitation_Securite.md) | Exploitation et sécurité : supervision (Zabbix / Grafana), Wazuh, sauvegarde / PRA, RGPD |
 | [`Veille_Portfolio/`](Veille_Portfolio/README.md) | Veille technologique et liens vers le portfolio |

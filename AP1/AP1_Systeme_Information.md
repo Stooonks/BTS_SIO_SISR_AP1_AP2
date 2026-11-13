@@ -18,7 +18,9 @@
 
 ## 1. Contexte et objectifs
 
-Mettre en place, en équipe, le socle du système d'information de la section BTS SIO sur un hyperviseur Proxmox partagé :
+**Contexte :** laboratoire pharmaceutique **RedOne**, siège Europe à Paris (voir [CONTEXTE_RedOne.md](../CONTEXTE_RedOne.md)). Le SI est segmenté en VLAN par service, avec des données stratégiques (aucune fuite ni perte tolérée). Le service Réseau & Système doit fournir l'infrastructure qui hébergera les applications de la flotte de visiteurs médicaux.
+
+Mettre en place, en équipe, le socle du système d'information de RedOne sur un hyperviseur Proxmox partagé :
 
 - segmentation réseau par VLAN, routée et filtrée par **pfSense** ;
 - annuaire **Active Directory** avec les groupes de la section ;
