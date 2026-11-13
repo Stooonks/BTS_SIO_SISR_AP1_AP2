@@ -1,0 +1,23 @@
+# Secrets et identifiants
+*.env
+.env*
+*secret*
+*password*
+*mdp*
+*.key
+*.pem
+*.p12
+*.pfx
+credentials*
+
+# Exports de configuration bruts (à nettoyer avant de les versionner)
+config-*.xml
+*.conf.bak
+*.backup
+
+# Fichiers système / éditeurs
+.DS_Store
+Thumbs.db
+desktop.ini
+~$*
+.vscode/
