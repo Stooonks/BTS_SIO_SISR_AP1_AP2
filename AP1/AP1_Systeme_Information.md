@@ -152,6 +152,90 @@ New-ADGroup -Name "SISR"     -GroupScope Global -Path "OU=BTS_SIO,DC=domaine,DC=
 
 > Remplacer `DC=domaine,DC=local` par le nom réel du domaine.
 
+### 5.2 bis Active Directory RedOne – rôles et droits (SRV-AD, domaine `RedOne.local`)
+
+Contrôleur de domaine **REDONE** (VM 105, `10.2.1.10`). Une OU par service RedOne, **24 employés** (2 par OU).
+
+#### Modèle AGDLP
+
+Les droits ne sont jamais donnés directement aux comptes : **A**ccount → **G**roupe global (le rôle) → groupe **D**omaine **L**ocal (le droit) → **P**ermission NTFS.
+
+| OU | Groupe global (rôle) | Membres |
+|---|---|---|
+| Direction-DSI | `GG_Direction-DSI` | Alma Roux, Ambre Moreau |
+| Réseau-Système | `GG_Reseau-Systeme` | Jade Laurent, Louise Petit |
+| Serveurs | `GG_Exploitation-Serveurs` | Alba Martinez, Alma Francois |
+| RH-Compta-Juridique-Secretariat | `GG_RH-Compta-Juridique` | Alba Leroy, Emma Simon |
+| Communication-Redaction | `GG_Communication-Redaction` | Rose Garcia, Romy Michel |
+| Développement | `GG_Developpement` | Adele David, Alice Bertrand |
+| Commercial | `GG_Commercial` | Iris Vincent, Lou Fournier |
+| Labo-Recherche | `GG_Labo-Recherche` | Agathe Morel, Inaya Girard |
+| Accueil | `GG_Accueil` | Anna Andre, Mia Lefevre |
+| Démonstration | `GG_Demonstration` | Ambre Bonnet, Jade Lambert |
+| Visiteurs | `GG_Visiteurs-Medicaux` | Bintou Traore, Ousmane Sissoko |
+| Sortie | `GG_Sortie` | Emma Legrand, Romy Faure |
+| *(tous)* | `GG_Tous-Employes` | les 24 employés |
+
+Groupes rangés dans `OU=Groupes` (`Globaux` / `Domaine-Local`), OU protégées contre la suppression accidentelle.
+
+#### Partage `\\REDONE\Partages` → lecteur **Z:**
+
+| Paramètre | Valeur |
+|---|---|
+| Dossier | `C:\Partages` sur SRV-AD, héritage NTFS coupé et ACL maîtrisées |
+| Droits de partage | Administrateurs : contrôle total – Utilisateurs authentifiés : modifier (la sécurité est portée par NTFS) |
+| Énumération basée sur l'accès | **Activée** : chaque employé ne voit que les dossiers auxquels il a droit |
+| Chiffrement SMB | Activé |
+| Mappage | GPO **« RedOne - Lecteur Z Partages »** (préférence *Lecteurs mappés*, configuration utilisateur), liée au domaine → `Z:` « Partages RedOne » à l'ouverture de session |
+
+**Chaque dossier de service n'est accessible qu'aux personnes ayant ce rôle :**
+
+| Dossier Z: | Écriture (RW) | Lecture (R) |
+|---|---|---|
+| `Commun` | Tous les employés | – |
+| `Direction-DSI` | Direction-DSI | – |
+| `DSI-Technique` | Réseau-Système, Exploitation-Serveurs | – |
+| `RH-Compta-Juridique` | RH / Compta / Juridique | – |
+| `Commercial` | Commercial | – |
+| `Communication-Redaction` | Communication / Rédaction | – |
+| `Developpement` | Développement | – |
+| `Labo-Recherche` | Labo-Recherche | – |
+| `Accueil` | Accueil | – |
+| `Demonstration` | Démonstration | – |
+| `Visiteurs-Medicaux` | Visiteurs médicaux | Commercial (suivi des visites) |
+| `Visiteurs-Medicaux\Notes-de-frais` | Visiteurs médicaux | RH / Compta (remboursement des frais) |
+| `Visiteurs-Medicaux\Remontees-terrain` | Visiteurs médicaux | Rédaction et Labo-Recherche (notices, évaluations) |
+| *tout le partage* | Réseau-Système : **contrôle total** (administration, sauvegarde) | – |
+
+Les partages croisés autour des visiteurs médicaux répondent directement au cahier des charges : frais pris en charge par la comptabilité, informations terrain remontées à la rédaction et au labo.
+
+#### Délégation d'administration
+
+`GG_Reseau-Systeme` peut **réinitialiser les mots de passe** et **déverrouiller les comptes** dans les OU des services (droits délégués par `dsacls`), sans être administrateur du domaine.
+
+#### Documents déposés (17)
+
+| Dossier | Documents |
+|---|---|
+| Commun | Charte informatique RedOne, Annuaire des services, LISEZ-MOI organisation du lecteur Z |
+| Direction-DSI | Compte rendu du comité de direction |
+| DSI-Technique | Plan d'adressage RedOne, Procédure de réinitialisation de mot de passe |
+| RH-Compta-Juridique | Procédure d'arrivée d'un collaborateur, Barème des frais de déplacement 2026 |
+| Visiteurs-Medicaux | Planning des visites, Modèle de note de frais, Remontées praticiens semaine 47 |
+| Commercial | Objectifs par secteur 2026 |
+| Communication-Redaction | Notices – corrections à prévoir |
+| Labo-Recherche | Protocole d'évaluation complémentaire |
+| Developpement | Cahier des charges de l'application visites et frais |
+| Accueil / Demonstration | Registre des visiteurs, Réservation de la salle Démonstration |
+
+#### Vérification des accès effectifs (24 comptes contrôlés)
+
+Contrôle par les groupes de sécurité réellement obtenus par chaque compte (`tokenGroups`) : chaque employé a **son dossier de service + Commun**, rien d'autre ; seuls les échanges prévus (frais, remontées terrain, suivi commercial) ajoutent une lecture ciblée. Exemples : Alba Leroy (RH) → `RH-Compta-Juridique` [RW], `Commun` [RW], `Notes-de-frais` [R] ; Bintou Traore (visiteuse) → `Visiteurs-Medicaux` [RW], `Commun` [RW].
+
+> **À valider** : les OU `Serveurs` et `Sortie` correspondent à des VLAN et non à des services. `Serveurs` a été traité comme l'équipe d'exploitation (accès `DSI-Technique`) ; les comptes de `Sortie` n'ont accès qu'à `Commun`.
+
+Scripts : [`AP1/ad/`](ad/)
+
 ### 5.3 Autoriser le ping sur les serveurs Windows
 
 Par défaut, le pare-feu Windows bloque l'ICMP entrant. Pour les tests de connectivité :
