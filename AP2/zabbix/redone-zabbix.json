@@ -1,0 +1,797 @@
+{
+  "uid": "redone-zabbix",
+  "title": "RedOne – Zabbix",
+  "tags": [
+    "RedOne",
+    "AP2",
+    "zabbix"
+  ],
+  "description": "Problèmes, disponibilité et ressources remontés par Zabbix (SRV-ZABBIX)",
+  "timezone": "browser",
+  "refresh": "1m",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "schemaVersion": 41,
+  "editable": true,
+  "graphTooltip": 1,
+  "links": [
+    {
+      "title": "Interface Zabbix",
+      "type": "link",
+      "url": "http://192.168.100.210/zabbix",
+      "targetBlank": true,
+      "icon": "external link"
+    },
+    {
+      "title": "Centre de supervision sécurité",
+      "type": "link",
+      "url": "/d/redone-soc",
+      "icon": "dashboard"
+    }
+  ],
+  "panels": [
+    {
+      "id": 1,
+      "type": "text",
+      "title": "",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 16,
+        "h": 6
+      },
+      "transparent": true,
+      "options": {
+        "mode": "markdown",
+        "content": "## 📡 RedOne – Supervision Zabbix\n**Zabbix** (SRV-ZABBIX, `10.2.1.52`) interroge chaque minute un **agent** installé sur les serveurs et les postes, et teste par **ping** les équipements sans agent (pfSense, TrueNAS).\nIl évalue des **déclencheurs** (*triggers*) : quand un seuil est franchi, un **problème** apparaît ci-dessous avec sa gravité.\nCe tableau lit Zabbix via son API (utilisateur `grafana` en **lecture seule**, authentification par jeton).\n👉 Survolez **ⓘ** pour le détail de chaque panneau. Interface Zabbix complète : **http://192.168.100.210/zabbix**"
+      }
+    },
+    {
+      "id": 2,
+      "type": "text",
+      "title": "Lecture",
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 6
+      },
+      "transparent": false,
+      "options": {
+        "mode": "markdown",
+        "content": "| Gravité Zabbix | Couleur |\n|---|---|\n| Désastre / Haute | 🔴 |\n| Moyenne | 🟠 |\n| Avertissement / Information | 🟡 🔵 |\n\nLes agents Windows s'installent avec `\\\\RedOne.local\\NETLOGON\\zabbix-agent.ps1`."
+      }
+    },
+    {
+      "id": 3,
+      "type": "row",
+      "title": "🚨 Problèmes en cours",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 4,
+      "type": "alexanderzobnin-zabbix-triggers-panel",
+      "title": "Problèmes Zabbix actifs",
+      "description": "Liste des déclencheurs en état PROBLÈME, du plus grave au moins grave : hôte, gravité, durée, description. Vide = tout fonctionne.",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 24,
+        "h": 9
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "5",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "proxy": {
+            "filter": ""
+          },
+          "trigger": {
+            "filter": ""
+          },
+          "tags": {
+            "filter": ""
+          },
+          "options": {
+            "minSeverity": 0,
+            "acknowledged": 2,
+            "sortProblems": "default",
+            "showProblems": "problems",
+            "hostsInMaintenance": false,
+            "hostProxy": false,
+            "limit": 100
+          }
+        }
+      ],
+      "options": {
+        "layout": "table",
+        "pageSize": 10,
+        "showTags": true,
+        "hostField": true,
+        "hostTechNameField": false,
+        "hostGroups": false,
+        "statusField": true,
+        "statusIcon": true,
+        "severityField": true,
+        "ageField": true,
+        "descriptionField": true,
+        "descriptionAtNewLine": false,
+        "ackField": true,
+        "fontSize": "100%",
+        "highlightNewEvents": true,
+        "highlightNewerThan": "1h",
+        "customLastChangeFormat": false,
+        "sortProblems": "priority",
+        "markAckEvents": false
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "🟢 Disponibilité",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Agent Zabbix",
+      "description": "État de l'agent sur chaque machine. AGENT ABSENT = l'agent n'est pas encore installé (machines Windows : lancer le script NETLOGON).",
+      "gridPos": {
+        "x": 0,
+        "y": 17,
+        "w": 14,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Zabbix agent availability"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "DISPONIBLE",
+                  "color": "green"
+                },
+                "2": {
+                  "text": "INDISPONIBLE",
+                  "color": "red"
+                },
+                "0": {
+                  "text": "AGENT ABSENT",
+                  "color": "orange"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "orange",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Ping",
+      "description": "Réponse au ping du serveur Zabbix (modèle ICMP Ping) : utile pour les équipements sans agent comme pfSense et TrueNAS.",
+      "gridPos": {
+        "x": 14,
+        "y": 17,
+        "w": 10,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP ping"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "1": {
+                  "text": "RÉPOND",
+                  "color": "green"
+                },
+                "0": {
+                  "text": "NE RÉPOND PAS",
+                  "color": "red"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "📊 Ressources (agents Zabbix)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "CPU",
+      "description": "Utilisation processeur relevée par l'agent Zabbix (élément « CPU utilization »). Seuils 70 / 90 %.",
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "CPU utilization"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "displayName": "${__field.labels.host}",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Mémoire",
+      "description": "Utilisation de la mémoire vive (élément « Memory utilization »).",
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Memory utilization"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "displayName": "${__field.labels.host}",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 11,
+      "type": "timeseries",
+      "title": "Disque /",
+      "description": "Remplissage de la partition système des serveurs Linux (« FS [/]: Space: Used, in % »).",
+      "gridPos": {
+        "x": 0,
+        "y": 31,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "/FS \\[\\/\\]: Space: Used, in %/"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "displayName": "${__field.labels.host}",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "dashed"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 12,
+      "type": "timeseries",
+      "title": "Temps de réponse ICMP",
+      "description": "Latence du ping depuis SRV-ZABBIX. Une hausse brutale signale une saturation réseau.",
+      "gridPos": {
+        "x": 12,
+        "y": 31,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/.*/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "ICMP response time"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "max": null,
+          "displayName": "${__field.labels.host}",
+          "color": {
+            "mode": "palette-classic"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 70
+              },
+              {
+                "color": "red",
+                "value": 90
+              }
+            ]
+          },
+          "custom": {
+            "lineWidth": 2,
+            "fillOpacity": 12,
+            "gradientMode": "opacity",
+            "showPoints": "never",
+            "spanNulls": true,
+            "thresholdsStyle": {
+              "mode": "off"
+            }
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "calcs": [
+            "mean",
+            "max",
+            "lastNotNull"
+          ],
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    }
+  ]
+}
