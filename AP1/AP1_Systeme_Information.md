@@ -232,7 +232,7 @@ Les partages croisés autour des visiteurs médicaux répondent directement au c
 
 Contrôle par les groupes de sécurité réellement obtenus par chaque compte (`tokenGroups`) : chaque employé a **son dossier de service + Commun**, rien d'autre ; seuls les échanges prévus (frais, remontées terrain, suivi commercial) ajoutent une lecture ciblée. Exemples : Alba Leroy (RH) → `RH-Compta-Juridique` [RW], `Commun` [RW], `Notes-de-frais` [R] ; Bintou Traore (visiteuse) → `Visiteurs-Medicaux` [RW], `Commun` [RW].
 
-> **À valider** : les OU `Serveurs` et `Sortie` correspondent à des VLAN et non à des services. `Serveurs` a été traité comme l'équipe d'exploitation (accès `DSI-Technique`) ; les comptes de `Sortie` n'ont accès qu'à `Commun`.
+> **Choix retenu** : les OU `Serveurs` et `Sortie` reprennent des noms de VLAN. Les comptes de `Serveurs` forment l'équipe d'**exploitation des serveurs** (accès `DSI-Technique`) ; les comptes de `Sortie` n'ont accès qu'à `Commun` (principe du moindre privilège).
 
 Scripts : [`AP1/ad/`](ad/)
 
