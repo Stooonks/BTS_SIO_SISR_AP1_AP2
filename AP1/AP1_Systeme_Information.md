@@ -338,6 +338,24 @@ Annuaire **« AD RedOne »** actif (*Configuration → Authentification → Annu
 
 Les techniciens et administrateurs gardent des comptes GLPI dédiés (`admin.redone`, `tech.reseau`) : un compte AD standard n'obtient jamais de droits d'administration GLPI automatiquement.
 
+#### Accès d'administration aux serveurs
+
+Toutes les interfaces sont publiées sur le réseau d'administration de la salle (`192.168.100.0/24`) : aucun poste particulier n'est nécessaire, un navigateur suffit.
+
+| Serveur | Interface web (réseau admin) | Réseau RedOne (VLAN 200) |
+|---|---|---|
+| Proxmox | `https://192.168.100.2:8006` | – |
+| SRV-GLPI (VM 208) | `http://192.168.100.208` | `10.2.1.50` |
+| SRV-WAZUH (VM 209) | `https://192.168.100.209` | `10.2.1.51` |
+| SRV-SUPERVISION (VM 204) – Grafana / Prometheus | `http://192.168.100.204:3000` / `:9090` | `10.2.1.3` |
+| SRV-AD (VM 105) | console Proxmox | `10.2.1.10` |
+
+| Accès | Mesure |
+|---|---|
+| SSH | Authentification **par clé uniquement** (mot de passe refusé), compte `sysadmin`, `root` interdit sur SRV-WAZUH |
+| Console de secours | Mot de passe fort pour `sysadmin` sur SRV-GLPI et SRV-WAZUH, utilisable **uniquement via la console Proxmox** (conservé hors dépôt) |
+| Passerelle d'administration | SRV-GLPI route vers le VLAN 200 **uniquement** pour le poste d'administration `192.168.100.141` (nftables : forward en *drop* par défaut, NAT en sortie) – service `redone-gw-admin` |
+
 #### Suite prévue
 
 - **Agent GLPI** sur les postes et serveurs (paquet officiel `glpi-agent`, serveur `https://192.168.100.208/`) pour remonter l'inventaire automatiquement.
