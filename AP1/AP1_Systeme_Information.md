@@ -171,10 +171,12 @@ GLPI répond au besoin RedOne d'**uniformiser le suivi** : tickets d'incidents e
 | VM Proxmox | **208 – SRV-GLPI** (plage VMID 200–299), tags `ap1`, `glpi`, `redone` |
 | Système | Debian 13 (image cloud, déploiement cloud-init) |
 | Ressources | 2 vCPU, 4 Go RAM, 32 Go (stockage `Raid5-VMs`) |
-| Réseau | `vmbr0`, IP fixe `192.168.100.208/24`, passerelle `192.168.100.1` |
-| Accès | `http://192.168.100.208` – SSH par clé uniquement (compte `sysadmin`, pas de mot de passe) |
+| Réseau – administration | `eth0` sur `vmbr0` : `192.168.100.208/24`, passerelle `192.168.100.1` (accès web et SSH depuis le poste admin) |
+| Réseau – serveurs | `eth1` sur `vmbr2`, VLAN 200 : `10.2.1.50/24` (accès à l'AD `10.2.1.10` en LDAP et aux serveurs) |
+| Accès | `https://192.168.100.208` (ou `http://`) – SSH par clé uniquement (compte `sysadmin`, pas de mot de passe) |
+| Pool Proxmox | `Faaaah` (visible avec le compte Proxmox de Fahim) |
 
-> Le VLAN 200 (`vmbr2`) n'étant pas routé depuis le poste d'administration au moment de l'installation, la VM est placée sur le réseau d'administration de la salle. Cible RedOne : VLAN Serveurs, `172.16.0.50` (tableau 3.2).
+> La VM a deux cartes : l'interface web est publiée sur le réseau d'administration de la salle, et la carte VLAN 200 lui donne accès aux serveurs RedOne (AD). Cible RedOne : VLAN Serveurs, `172.16.0.50` (tableau 3.2).
 
 #### Pile logicielle
 
@@ -196,9 +198,14 @@ GLPI répond au besoin RedOne d'**uniformiser le suivi** : tickets d'incidents e
 | Comptes par défaut neutralisés | `glpi`, `tech`, `normal`, `post-only` : mot de passe aléatoire **et** compte désactivé |
 | Comptes nominatifs | `admin.redone` (Super-Admin, groupe DSI), `tech.reseau` (Technicien, groupe Réseau & Système), `visiteur.demo` (Self-Service, groupe Visiteurs médicaux) – mots de passe forts générés, conservés hors dépôt |
 | Base de données | Mot de passe aléatoire de 24 caractères, utilisateur limité à la base `glpi` |
-| Cookies de session | `HttpOnly` et `SameSite=Lax` |
-| Apache | `ServerTokens Prod`, `ServerSignature Off` (la version n'est pas divulguée) |
+| HTTPS | TLS 1.2 / 1.3 uniquement, certificat auto-signé `glpi.redone.local` (à remplacer par un certificat de l'AC interne RedOne), HSTS |
+| En-têtes HTTP | `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`, `Referrer-Policy` |
+| Politique de mots de passe | 12 caractères minimum, majuscule + chiffre + symbole obligatoires, expiration 180 jours |
+| Sessions | Pas de « se souvenir de moi », expiration après 1 h d'inactivité, cookies `HttpOnly` et `SameSite=Lax` |
+| Apache / PHP | `ServerTokens Prod`, `ServerSignature Off`, `expose_php = Off` (versions non divulguées) |
+| API REST | Désactivée (utilisée uniquement depuis `localhost` pour le peuplement initial, jeton effacé ensuite) |
 | Tâches automatiques | Cron système toutes les minutes (`/etc/cron.d/glpi`) |
+| Sauvegarde | Chaque nuit à 1 h 30 : base (`mysqldump`) + configuration + documents dans `/var/backups/glpi` (root uniquement, rétention 7 jours) – testée : 447 tables |
 
 #### Référentiel RedOne chargé
 
@@ -210,11 +217,45 @@ GLPI répond au besoin RedOne d'**uniformiser le suivi** : tickets d'incidents e
 | Catégories de tickets (16) | Matériel (poste, portable visiteur, imprimante, serveur) ; Réseau (accès / VLAN, Wi-Fi, VPN nomade) ; Logiciel (BDMED / BDPHARMA, messagerie, saisie des visites / frais) ; Comptes et accès (compte AD, mot de passe, droits) ; Sécurité (alerte antivirus, alerte supervision / SIEM, suspicion de fuite) |
 | Inventaire | Inventaire natif activé (réception des agents GLPI) |
 
+#### Attribution automatique des tickets
+
+Mode d'attribution de l'entité : **catégorie puis matériel**. Chaque catégorie porte un groupe technique :
+
+| Catégories | Groupe attribué | Technicien par défaut |
+|---|---|---|
+| Matériel, Réseau, Comptes et accès, Sécurité, Logiciel (messagerie, BDMED / BDPHARMA) | DSI › Réseau & Système | `tech.reseau` (Réseau et Sécurité) |
+| Logiciel › Saisie des visites / frais | DSI › Développement | – |
+
+#### Parc et tickets de démonstration
+
+| Type | Éléments |
+|---|---|
+| Serveurs (9 ordinateurs au total) | SRV-AD (VM 105), SRV-AD2 (VM 206), SRV-SUPERVISION (VM 204), SRV-GLPI (VM 208), SRV-TRUENAS (VM 205) – lieu : salle serveur, technicien : groupe Réseau & Système |
+| Postes | PC-ACCUEIL-01, PC-COMMERCIAL-01, PORTABLE-VIS-001 (attribué à `visiteur.demo`), PORTABLE-VIS-002 (en stock) |
+| Réseau | FW-PFSENSE (VM 207), AP-WIFI-REUNION-01 (VLAN Visiteurs) |
+| Impression | IMP-ACCUEIL-01 |
+| Tickets | 4 tickets `[DEMO]` (frais de déplacement, alerte ClamAV, création de compte AD, Wi-Fi salle de réunion), tous **attribués automatiquement** au bon groupe |
+
+#### Annuaire LDAP (Active Directory RedOne)
+
+Annuaire **« AD RedOne »** préconfiguré (*Configuration → Authentification → Annuaires LDAP*) :
+
+| Paramètre | Valeur |
+|---|---|
+| Serveur | `10.2.1.10:389` (VM 105, `RedOne.RedOne.local`) – joignable depuis `eth1` |
+| Base DN | `DC=RedOne,DC=local` |
+| Compte de connexion | `CN=svc-glpi,CN=Users,DC=RedOne,DC=local` (compte de service à créer dans l'AD) |
+| Filtre | utilisateurs actifs uniquement (`objectCategory=person`, comptes désactivés exclus) |
+| Identifiant / synchronisation | `samAccountName` / `objectGUID` |
+| Champs | nom `sn`, prénom `givenName`, mail, téléphone, mobile, fonction ; groupes via `memberOf` |
+
+État : **désactivé** tant que le compte de service n'existe pas. Pour l'activer : créer `svc-glpi` dans l'AD (utilisateur standard, mot de passe sans expiration), saisir son mot de passe dans GLPI, tester la connexion puis cocher *Actif*.
+
 #### Suite prévue
 
-- **Agent GLPI** sur les postes et serveurs (paquet officiel `glpi-agent`, serveur `http://192.168.100.208/`) pour remonter l'inventaire automatiquement.
-- **Annuaire LDAP** : liaison avec l'AD RedOne (*Configuration → Authentification → Annuaires LDAP*) pour importer les comptes et les groupes.
-- **Collecteur mail** : création de tickets par mail.
+- **Agent GLPI** sur les postes et serveurs (paquet officiel `glpi-agent`, serveur `https://192.168.100.208/`) pour remonter l'inventaire automatiquement.
+- **Collecteur mail** et **notifications** : création de tickets et suivi par mail (serveur SMTP RedOne).
+- **SLA** : délais de prise en charge et de résolution par priorité.
 
 Captures : `captures/glpi_01_connexion.jpg`, `captures/glpi_02_accueil.png`, `captures/glpi_03_categories.png`, `captures/glpi_04_groupes.png`, `captures/glpi_05_ticket.png`
 
@@ -234,6 +275,10 @@ Captures : `captures/glpi_01_connexion.jpg`, `captures/glpi_02_accueil.png`, `ca
 | 10 | Accès GLPI | navigateur → `http://192.168.100.208` | Page de connexion GLPI | HTTP 200, page « Connexion à votre compte » | ✅ |
 | 10b | Assistant d'installation inaccessible | `http://192.168.100.208/install/install.php` | 404 | 404 | ✅ |
 | 10c | Comptes par défaut | connexion avec `glpi` | Refusée (compte désactivé) | | |
+| 10d | HTTPS | `https://192.168.100.208` | Page de connexion, en-têtes HSTS et `nosniff` | HTTP 200, en-têtes présents | ✅ |
+| 10e | GLPI → AD | test du port 389 depuis SRV-GLPI vers `10.2.1.10` | Port ouvert | Ouvert, annuaire `RedOne.local` lu | ✅ |
+| 10f | Attribution automatique | création d'un ticket « Saisie des visites / frais » | Attribué au groupe Développement | Attribué à Développement | ✅ |
+| 10g | Sauvegarde | exécution de `glpi-backup.sh` | Dump complet de la base | 447 tables sauvegardées | ✅ |
 | 11 | IP statique pfSense | redémarrage pfSense puis vérification de l'IP | IP inchangée | | |
 
 ## 7. Gestion des secrets
