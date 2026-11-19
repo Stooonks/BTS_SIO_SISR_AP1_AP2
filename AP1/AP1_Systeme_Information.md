@@ -266,7 +266,7 @@ Test à réaliser sur un poste du domaine : ouvrir une session avec un compte de
 | Poste | VM | IP | DNS | OU | État |
 |---|---|---|---|---|---|
 | POSTE-2 (ex `DESKTOP-DPF65V6`) | 203 | `10.2.1.15` | `10.2.1.10` (AD), `10.2.1.1` en secours | `OU=Postes` | ✅ membre de `RedOne.local`, canal sécurisé OK, GPO appliquées |
-| POSTE-1 | 112 | – | – | `OU=Postes` (compte pré-créé) | ⏳ installation de Windows à terminer |
+| POSTE-1 | 112 | `10.2.1.11` | `10.2.1.10` (AD), `10.2.1.1` en secours | `OU=Postes` | ✅ membre de `RedOne.local`, canal sécurisé OK (installation de Windows terminée avec le compte local `adminlocal`, agent invité QEMU + pilote VirtIO série installés) |
 
 **Méthode : jonction hors ligne (`djoin`).** Le compte ordinateur est pré-créé depuis le contrôleur de domaine. Le poste charge ensuite un fichier d'approvisionnement, sans saisir d'identifiant d'administrateur du domaine sur le poste :
 
