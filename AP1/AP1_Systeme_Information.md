@@ -72,7 +72,7 @@ Les VLAN ID RedOne (10 à 400) chevauchent les plages réservées aux étudiants
 |---|---|---|---|
 | pfSense (interface Serveurs) | `172.16.127.254` | `10.1.0.15` | 100 – 199 |
 | Active Directory / DNS / DHCP | `172.16.0.1` | `192.168.100.2` ⚠️ | 100 – 199 |
-| GLPI | `172.16.0.50` | `192.168.100.50` | 100 – 199 |
+| GLPI (VM 208 SRV-GLPI) | `172.16.0.50` | `192.168.100.208` | 208 |
 | Wazuh | `172.16.0.4` | `10.1.0.4` | 100 – 199 |
 | Zabbix / Grafana | `172.16.0.5` | `10.1.0.5` (ou `192.168.100.133`, à confirmer) | 100 – 199 |
 
@@ -160,9 +160,63 @@ Par défaut, le pare-feu Windows bloque l'ICMP entrant. Pour les tests de connec
 Get-NetFirewallRule -DisplayName "Diagnostics de réseau de base - Demande d'écho ICMP (ICMPv4-Entrant)" | Enable-NetFirewallRule
 ```
 
-### 5.4 GLPI
+### 5.4 GLPI – gestion de parc et du support
 
-*À compléter : installation, connexion à l'AD (LDAP), inventaire des postes.*
+GLPI répond au besoin RedOne d'**uniformiser le suivi** : tickets d'incidents et de demandes, inventaire du parc (postes du siège et portables des visiteurs médicaux) et rattachement des équipements aux services.
+
+#### Machine virtuelle
+
+| Paramètre | Valeur |
+|---|---|
+| VM Proxmox | **208 – SRV-GLPI** (plage VMID 200–299), tags `ap1`, `glpi`, `redone` |
+| Système | Debian 13 (image cloud, déploiement cloud-init) |
+| Ressources | 2 vCPU, 4 Go RAM, 32 Go (stockage `Raid5-VMs`) |
+| Réseau | `vmbr0`, IP fixe `192.168.100.208/24`, passerelle `192.168.100.1` |
+| Accès | `http://192.168.100.208` – SSH par clé uniquement (compte `sysadmin`, pas de mot de passe) |
+
+> Le VLAN 200 (`vmbr2`) n'étant pas routé depuis le poste d'administration au moment de l'installation, la VM est placée sur le réseau d'administration de la salle. Cible RedOne : VLAN Serveurs, `172.16.0.50` (tableau 3.2).
+
+#### Pile logicielle
+
+| Composant | Version |
+|---|---|
+| GLPI | 12.0.2 |
+| Apache | 2.4 (racine web limitée à `/var/www/glpi/public`, `mod_rewrite`) |
+| PHP | 8.4 (`mod_php`, extensions mysql, intl, ldap, gd, curl, zip, bz2, bcmath, opcache, apcu) |
+| MariaDB | 11.8 (base `glpi` en `utf8mb4`, utilisateur dédié limité à cette base, fuseaux horaires chargés) |
+| node_exporter | supervision par Prometheus (port 9100, voir AP2) |
+
+#### Sécurisation appliquée
+
+| Mesure | Détail |
+|---|---|
+| Racine web restreinte | Seul `public/` est exposé : config, données et journaux ne sont pas accessibles par HTTP (vérifié : HTTP 404) |
+| Arborescence séparée | Configuration dans `/etc/glpi`, données dans `/var/lib/glpi`, journaux dans `/var/log/glpi` (propriétaire `www-data`, droits 750) ; code en lecture seule (propriétaire `root`) |
+| Assistant d'installation supprimé | `install/install.php` supprimé après installation (vérifié : HTTP 404) |
+| Comptes par défaut neutralisés | `glpi`, `tech`, `normal`, `post-only` : mot de passe aléatoire **et** compte désactivé |
+| Comptes nominatifs | `admin.redone` (Super-Admin, groupe DSI), `tech.reseau` (Technicien, groupe Réseau & Système), `visiteur.demo` (Self-Service, groupe Visiteurs médicaux) – mots de passe forts générés, conservés hors dépôt |
+| Base de données | Mot de passe aléatoire de 24 caractères, utilisateur limité à la base `glpi` |
+| Cookies de session | `HttpOnly` et `SameSite=Lax` |
+| Apache | `ServerTokens Prod`, `ServerSignature Off` (la version n'est pas divulguée) |
+| Tâches automatiques | Cron système toutes les minutes (`/etc/cron.d/glpi`) |
+
+#### Référentiel RedOne chargé
+
+| Élément | Contenu |
+|---|---|
+| Entité | **RedOne** (siège Europe, Paris) |
+| Lieux | Paris - Siège › 6e étage - Salle serveur, Salles de réunion, Salle Démonstration, Accueil ; Terrain - Visiteurs médicaux |
+| Groupes | DSI › Réseau & Système, Développement ; Direction ; RH / Compta / Juridique ; Communication / Rédaction ; Commercial ; Labo-Recherche ; Visiteurs médicaux (alignés sur les VLAN) |
+| Catégories de tickets (16) | Matériel (poste, portable visiteur, imprimante, serveur) ; Réseau (accès / VLAN, Wi-Fi, VPN nomade) ; Logiciel (BDMED / BDPHARMA, messagerie, saisie des visites / frais) ; Comptes et accès (compte AD, mot de passe, droits) ; Sécurité (alerte antivirus, alerte supervision / SIEM, suspicion de fuite) |
+| Inventaire | Inventaire natif activé (réception des agents GLPI) |
+
+#### Suite prévue
+
+- **Agent GLPI** sur les postes et serveurs (paquet officiel `glpi-agent`, serveur `http://192.168.100.208/`) pour remonter l'inventaire automatiquement.
+- **Annuaire LDAP** : liaison avec l'AD RedOne (*Configuration → Authentification → Annuaires LDAP*) pour importer les comptes et les groupes.
+- **Collecteur mail** : création de tickets par mail.
+
+Captures : `captures/glpi_01_connexion.jpg`, `captures/glpi_02_accueil.png`, `captures/glpi_03_categories.png`, `captures/glpi_04_groupes.png`, `captures/glpi_05_ticket.png`
 
 ## 6. Tests et validation
 
@@ -177,7 +231,9 @@ Get-NetFirewallRule -DisplayName "Diagnostics de réseau de base - Demande d'éc
 | 7 | Visiteurs → Internet | navigateur → site public | Page affichée | | |
 | 8 | Ping d'un serveur Windows | `ping <IP serveur>` | Réponse après activation de la règle ICMP | | |
 | 9 | Groupes AD présents | `Get-ADGroup -Filter 'Name -like "*S*"'` | `BTS SIO1`, `SLAM`, `SISR` | | |
-| 10 | Accès GLPI | navigateur → IP de GLPI (tableau 3.2) | Page de connexion GLPI | | |
+| 10 | Accès GLPI | navigateur → `http://192.168.100.208` | Page de connexion GLPI | HTTP 200, page « Connexion à votre compte » | ✅ |
+| 10b | Assistant d'installation inaccessible | `http://192.168.100.208/install/install.php` | 404 | 404 | ✅ |
+| 10c | Comptes par défaut | connexion avec `glpi` | Refusée (compte désactivé) | | |
 | 11 | IP statique pfSense | redémarrage pfSense puis vérification de l'IP | IP inchangée | | |
 
 ## 7. Gestion des secrets
