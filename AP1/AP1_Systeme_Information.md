@@ -234,6 +234,33 @@ Contrôle par les groupes de sécurité réellement obtenus par chaque compte (`
 
 > **Choix retenu** : les OU `Serveurs` et `Sortie` reprennent des noms de VLAN. Les comptes de `Serveurs` forment l'équipe d'**exploitation des serveurs** (accès `DSI-Technique`) ; les comptes de `Sortie` n'ont accès qu'à `Commun` (principe du moindre privilège).
 
+#### GPO – fond d'écran par rôle
+
+Une GPO par rôle, **liée à la racine du domaine** et **filtrée par groupe de sécurité** : elle n'est appliquée qu'aux membres du rôle (*Filtrage de sécurité* = groupe du rôle ; « Utilisateurs authentifiés » conserve uniquement la **lecture**, nécessaire depuis le correctif MS16-072).
+
+| GPO | S'applique à | Fond d'écran |
+|---|---|---|
+| `RedOne - Fond d'ecran Tech` | GG_Reseau-Systeme, GG_Exploitation-Serveurs | Bleu nuit – « Service Technique » |
+| `RedOne - Fond d'ecran RH` | GG_RH-Compta-Juridique | Vert – « Ressources Humaines » |
+| `RedOne - Fond d'ecran Commercial` | GG_Commercial | Orange – « Service Commercial » |
+| `RedOne - Fond d'ecran Admin` | GG_Direction-DSI | Bordeaux – « Direction / DSI » |
+
+| Paramètre (Configuration utilisateur › Modèles d'administration) | Valeur |
+|---|---|
+| Bureau › Bureau › **Papier peint du Bureau** | `\\RedOne.local\NETLOGON\FondsEcran\fond-<rôle>.jpg`, style *Remplir* |
+| Bureau › Bureau Active Desktop › **Empêcher la modification du papier peint** | Activé |
+| Configuration ordinateur | Désactivée (GPO utilisateur uniquement, traitement plus rapide) |
+
+Images 1920×1080 générées par script et stockées dans **NETLOGON** (lisible par tous les comptes du domaine, répliqué entre contrôleurs de domaine). Application à la prochaine ouverture de session (ou `gpupdate /force` puis déconnexion / reconnexion).
+
+| Tech | RH |
+|---|---|
+| ![Tech](captures/gpo_fond_tech.jpg) | ![RH](captures/gpo_fond_rh.jpg) |
+| **Commercial** | **Admin** |
+| ![Commercial](captures/gpo_fond_commercial.jpg) | ![Admin](captures/gpo_fond_admin.jpg) |
+
+Test à réaliser sur un poste du domaine : ouvrir une session avec un compte de chaque rôle (ex. `aleroy` pour RH, `ivincent` pour Commercial) et vérifier le fond d'écran et le lecteur Z: ; `gpresult /r` liste les GPO appliquées.
+
 Scripts : [`AP1/ad/`](ad/)
 
 ### 5.3 Autoriser le ping sur les serveurs Windows
