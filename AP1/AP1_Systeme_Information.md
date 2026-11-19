@@ -238,18 +238,21 @@ Mode d'attribution de l'entité : **catégorie puis matériel**. Chaque catégor
 
 #### Annuaire LDAP (Active Directory RedOne)
 
-Annuaire **« AD RedOne »** préconfiguré (*Configuration → Authentification → Annuaires LDAP*) :
+Annuaire **« AD RedOne »** actif (*Configuration → Authentification → Annuaires LDAP*) :
 
 | Paramètre | Valeur |
 |---|---|
 | Serveur | `10.2.1.10:389` (VM 105, `RedOne.RedOne.local`) – joignable depuis `eth1` |
 | Base DN | `DC=RedOne,DC=local` |
-| Compte de connexion | `CN=svc-glpi,CN=Users,DC=RedOne,DC=local` (compte de service à créer dans l'AD) |
+| Compte de connexion | `CN=svc-glpi,CN=Users,DC=RedOne,DC=local` – compte de service dédié, utilisateur standard (lecture seule), mot de passe fort aléatoire sans expiration, non modifiable par l'utilisateur ; stocké chiffré dans GLPI |
 | Filtre | utilisateurs actifs uniquement (`objectCategory=person`, comptes désactivés exclus) |
 | Identifiant / synchronisation | `samAccountName` / `objectGUID` |
 | Champs | nom `sn`, prénom `givenName`, mail, téléphone, mobile, fonction ; groupes via `memberOf` |
 
-État : **désactivé** tant que le compte de service n'existe pas. Pour l'activer : créer `svc-glpi` dans l'AD (utilisateur standard, mot de passe sans expiration), saisir son mot de passe dans GLPI, tester la connexion puis cocher *Actif*.
+| Résultat | **26 utilisateurs AD importés** dans GLPI (synchronisation `ldap:synchronize_users`) |
+| Règle d'habilitation | « AD RedOne - profil Self-Service » : tout compte authentifié par l'AD reçoit le profil **Self-Service** dans l'entité RedOne → les employés se connectent à GLPI avec leur identifiant Windows |
+
+Les techniciens et administrateurs gardent des comptes GLPI dédiés (`admin.redone`, `tech.reseau`) : un compte AD standard n'obtient jamais de droits d'administration GLPI automatiquement.
 
 #### Suite prévue
 
@@ -277,6 +280,8 @@ Captures : `captures/glpi_01_connexion.jpg`, `captures/glpi_02_accueil.png`, `ca
 | 10c | Comptes par défaut | connexion avec `glpi` | Refusée (compte désactivé) | | |
 | 10d | HTTPS | `https://192.168.100.208` | Page de connexion, en-têtes HSTS et `nosniff` | HTTP 200, en-têtes présents | ✅ |
 | 10e | GLPI → AD | test du port 389 depuis SRV-GLPI vers `10.2.1.10` | Port ouvert | Ouvert, annuaire `RedOne.local` lu | ✅ |
+| 10e2 | Compte de service LDAP | `ldapwhoami` avec `svc-glpi` | Authentification réussie | `REDONE0\svc-glpi` | ✅ |
+| 10e3 | Import des utilisateurs AD | synchronisation LDAP dans GLPI | Comptes importés avec un profil | 26 importés, 26 avec profil Self-Service | ✅ |
 | 10f | Attribution automatique | création d'un ticket « Saisie des visites / frais » | Attribué au groupe Développement | Attribué à Développement | ✅ |
 | 10g | Sauvegarde | exécution de `glpi-backup.sh` | Dump complet de la base | 447 tables sauvegardées | ✅ |
 | 11 | IP statique pfSense | redémarrage pfSense puis vérification de l'IP | IP inchangée | | |
