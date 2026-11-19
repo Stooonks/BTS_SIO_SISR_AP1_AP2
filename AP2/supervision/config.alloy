@@ -1,0 +1,64 @@
+// Grafana Alloy - SRV-SUPERVISION (RedOne)
+// Collecte : journaux ClamAV (fichiers locaux) + alertes Wazuh (syslog JSON) -> Loki
+
+// ---------- ClamAV ----------
+local.file_match "clamav" {
+  path_targets = [
+    {"__path__" = "/var/log/clamav/clamav.log",     "job" = "clamav", "log" = "clamd"},
+    {"__path__" = "/var/log/clamav/freshclam.log",  "job" = "clamav", "log" = "freshclam"},
+    {"__path__" = "/var/log/clamav/clamonacc.log",  "job" = "clamav", "log" = "clamonacc"},
+    {"__path__" = "/var/log/clamav/scan-hebdo.log", "job" = "clamav", "log" = "scan-hebdo"},
+  ]
+}
+
+loki.source.file "clamav" {
+  targets    = local.file_match.clamav.targets
+  forward_to = [loki.process.clamav.receiver]
+}
+
+// Horodatage réel de la ligne (« Thu Nov 19 12:05:39 2026 -> ... ») au lieu de l'heure de lecture
+loki.process "clamav" {
+  stage.regex {
+    expression = `^(?P<ts>\w{3} \w{3} [ \d]\d \d{2}:\d{2}:\d{2} \d{4}) -> `
+  }
+  stage.timestamp {
+    source   = "ts"
+    format   = "Mon Jan _2 15:04:05 2006"
+    location = "Europe/Paris"
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+// ---------- Wazuh ----------
+// SRV-WAZUH (10.2.1.51) envoie ses alertes de niveau >= 3 en JSON (wazuh-csyslogd)
+loki.source.syslog "wazuh" {
+  listener {
+    address       = "10.2.1.3:5514"
+    protocol      = "udp"
+    syslog_format = "rfc3164"
+    labels        = { job = "wazuh", host = "SRV-WAZUH" }
+  }
+  forward_to = [loki.process.wazuh.receiver]
+}
+
+// Étiquettes à faible cardinalité : machine surveillée et niveau.
+// Extraction par expression régulière (et non JSON) : wazuh-csyslogd coupe les très longues alertes
+// Windows à ~8 Ko, le JSON est alors incomplet mais le début (rule, agent) reste exploitable.
+loki.process "wazuh" {
+  stage.regex {
+    expression = `"rule":\{"level":(?P<level>\d+)`
+  }
+  stage.regex {
+    expression = `"agent":\{"id":"\d+","name":"(?P<agent>[^"]+)"`
+  }
+  stage.labels {
+    values = { agent = "", level = "" }
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://localhost:3100/loki/api/v1/push"
+  }
+}
