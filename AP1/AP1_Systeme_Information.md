@@ -261,6 +261,29 @@ Images 1920×1080 générées par script et stockées dans **NETLOGON** (lisible
 
 Test à réaliser sur un poste du domaine : ouvrir une session avec un compte de chaque rôle (ex. `aleroy` pour RH, `ivincent` pour Commercial) et vérifier le fond d'écran et le lecteur Z: ; `gpresult /r` liste les GPO appliquées.
 
+#### Postes clients joints au domaine
+
+| Poste | VM | IP | DNS | OU | État |
+|---|---|---|---|---|---|
+| POSTE-2 (ex `DESKTOP-DPF65V6`) | 203 | `10.2.1.15` | `10.2.1.10` (AD), `10.2.1.1` en secours | `OU=Postes` | ✅ membre de `RedOne.local`, canal sécurisé OK, GPO appliquées |
+| POSTE-1 | 112 | – | – | `OU=Postes` (compte pré-créé) | ⏳ installation de Windows à terminer |
+
+**Méthode : jonction hors ligne (`djoin`).** Le compte ordinateur est pré-créé depuis le contrôleur de domaine. Le poste charge ensuite un fichier d'approvisionnement, sans saisir d'identifiant d'administrateur du domaine sur le poste :
+
+```powershell
+# Sur le contrôleur de domaine
+New-ADOrganizationalUnit -Name Postes -Path "DC=RedOne,DC=local"
+djoin /provision /domain RedOne.local /machine POSTE-2 /machineou "OU=Postes,DC=RedOne,DC=local" /savefile POSTE-2.odj
+# Sur le poste (administrateur local) : DNS vers l'AD, puis chargement et redémarrage
+Set-DnsClientServerAddress -InterfaceAlias Ethernet -ServerAddresses 10.2.1.10,10.2.1.1
+djoin /requestODJ /loadfile POSTE-2.odj /windowspath %SystemRoot% /localos
+shutdown /r /t 0
+```
+
+Le fichier `.odj` contient le secret du compte machine : il est supprimé après usage et n'est pas versionné.
+
+> **Cause du problème « impossible de se connecter avec un autre utilisateur »** : les postes étaient en *WORKGROUP*, donc les comptes de l'AD n'y existaient pas. Point d'attention : le **nom NetBIOS du domaine est `REDONE0`** et non `REDONE`. À l'ouverture de session, il faut saisir `REDONE0\aleroy` ou `aleroy@RedOne.local`.
+
 Scripts : [`AP1/ad/`](ad/)
 
 ### 5.3 Autoriser le ping sur les serveurs Windows
