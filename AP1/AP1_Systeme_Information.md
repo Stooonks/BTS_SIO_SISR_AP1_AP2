@@ -260,7 +260,20 @@ Les techniciens et administrateurs gardent des comptes GLPI dédiés (`admin.red
 - **Collecteur mail** et **notifications** : création de tickets et suivi par mail (serveur SMTP RedOne).
 - **SLA** : délais de prise en charge et de résolution par priorité.
 
-Captures : `captures/glpi_01_connexion.jpg`, `captures/glpi_02_accueil.png`, `captures/glpi_03_categories.png`, `captures/glpi_04_groupes.png`, `captures/glpi_05_ticket.png`
+#### Captures d'écran
+
+| | |
+|---|---|
+| **Page de connexion** (source « Base interne GLPI » ou « AD RedOne ») | **Tableau de bord** : données réelles RedOne (9 ordinateurs, 2 matériels réseau, 33 utilisateurs, 9 groupes, 4 tickets) |
+| ![Connexion](captures/glpi_01_connexion.jpg) | ![Tableau de bord](captures/glpi_02_tableau_de_bord.jpg) |
+| **Tickets** : les 4 tickets de démonstration, tous « En cours (Attribué) » automatiquement | **Attribution automatique** : le ticket « frais de déplacement » est attribué au groupe DSI › Développement |
+| ![Tickets](captures/glpi_03_tickets_attribution_auto.jpg) | ![Ticket attribué](captures/glpi_04_ticket_attribue_developpement.jpg) |
+| **Parc** : serveurs virtuels (VM Proxmox), postes et portables des visiteurs | **Matériels réseau** : pare-feu pfSense et borne Wi-Fi |
+| ![Ordinateurs](captures/glpi_05_parc_ordinateurs.jpg) | ![Matériels réseau](captures/glpi_06_materiels_reseau.jpg) |
+| **Catégories ITIL** du support RedOne | **Lieux** : siège de Paris et terrain |
+| ![Catégories](captures/glpi_07_categories_itil.jpg) | ![Lieux](captures/glpi_08_lieux.jpg) |
+| **Sécurité** : GLPI redemande le mot de passe avant d'ouvrir une zone sensible (utilisateurs, groupes, annuaire LDAP) | |
+| ![Zone sensible](captures/glpi_09_zone_sensible_reauthentification.jpg) | |
 
 ## 6. Tests et validation
 
