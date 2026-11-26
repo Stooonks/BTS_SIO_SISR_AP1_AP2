@@ -371,7 +371,7 @@
     {
       "id": 8,
       "type": "row",
-      "title": "📊 Ressources (agents Zabbix)",
+      "title": "💾 Sauvegardes Veeam (SRV-VEEAM 10.2.1.53 → copie TrueNAS)",
       "collapsed": false,
       "panels": [],
       "gridPos": {
@@ -383,12 +383,617 @@
     },
     {
       "id": 9,
+      "type": "stat",
+      "title": "Dernière sauvegarde",
+      "description": "Résultat de la dernière sauvegarde Veeam de chaque contrôleur de domaine (événement 190 du journal « Veeam Agent »), envoyé à Zabbix toutes les 15 min et à la fin de chaque sauvegarde par C:\\Scripts\\veeam-status.ps1.",
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/^SRV-AD/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Veeam : résultat de la dernière sauvegarde"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "SUCCÈS",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "AVERTISSEMENT",
+                  "color": "orange"
+                },
+                "2": {
+                  "text": "ÉCHEC",
+                  "color": "red"
+                },
+                "3": {
+                  "text": "AUCUNE SAUVEGARDE",
+                  "color": "dark-red"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Âge de la sauvegarde",
+      "description": "Heures écoulées depuis la dernière sauvegarde. Sauvegarde quotidienne à 0 h 30 : au-delà de 26 h, Zabbix lève une alerte.",
+      "gridPos": {
+        "x": 8,
+        "y": 23,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/^SRV-AD/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Veeam : âge de la dernière sauvegarde"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "h",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "red",
+                "value": 26
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "Points de restauration",
+      "description": "Nombre de fichiers de sauvegarde (.vbk complète + .vib incrémentales) dans \\\\SRV-VEEAM\\Sauvegardes. Rétention : 14 jours.",
+      "gridPos": {
+        "x": 14,
+        "y": 23,
+        "w": 5,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/^SRV-AD/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Veeam : points de restauration"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Volume sauvegardé",
+      "description": "Taille des sauvegardes de chaque serveur sur le dépôt.",
+      "gridPos": {
+        "x": 19,
+        "y": 23,
+        "w": 5,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "/^SRV-AD/"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Veeam : taille des sauvegardes"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "decgbytes",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "blue",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Dépôt S: libre",
+      "description": "Espace libre sur le disque de sauvegarde de SRV-VEEAM (300 Go). Alerte Zabbix sous 15 %.",
+      "gridPos": {
+        "x": 0,
+        "y": 28,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "SRV-VEEAM"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Dépôt Veeam : espace libre en %"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 15
+              },
+              {
+                "color": "green",
+                "value": 30
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Copie TrueNAS",
+      "description": "Résultat de la copie miroir nocturne (4 h) du dépôt vers \\\\truenas.redone.local\\copie-veeam : 2ᵉ copie de la règle 3-2-1.",
+      "gridPos": {
+        "x": 6,
+        "y": 28,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "alexanderzobnin-zabbix-datasource",
+        "uid": "zabbix-redone"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "alexanderzobnin-zabbix-datasource",
+            "uid": "zabbix-redone"
+          },
+          "queryType": "0",
+          "group": {
+            "filter": "/^RedOne/"
+          },
+          "host": {
+            "filter": "SRV-VEEAM"
+          },
+          "application": {
+            "filter": ""
+          },
+          "itemTag": {
+            "filter": ""
+          },
+          "item": {
+            "filter": "Copie TrueNAS : résultat"
+          },
+          "functions": [],
+          "options": {
+            "showDisabledItems": false,
+            "skipEmptyValues": false,
+            "disableDataAlignment": false,
+            "useZabbixValueMapping": false
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "none",
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "COPIE OK",
+                  "color": "green"
+                },
+                "1": {
+                  "text": "COPIE EN ÉCHEC",
+                  "color": "red"
+                },
+                "2": {
+                  "text": "JAMAIS FAITE",
+                  "color": "orange"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "color": {
+            "mode": "thresholds"
+          },
+          "noValue": "pas de donnée",
+          "displayName": "${__field.labels.host}"
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "wideLayout": true
+      }
+    },
+    {
+      "id": 15,
+      "type": "logs",
+      "title": "Journal des sauvegardes (Loki)",
+      "gridPos": {
+        "x": 12,
+        "y": 28,
+        "w": 12,
+        "h": 5
+      },
+      "description": "Messages envoyés en syslog par les serveurs (Alloy, port UDP 5515, job=\"veeam\").",
+      "datasource": {
+        "type": "loki",
+        "uid": "loki-clamav"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "loki",
+            "uid": "loki-clamav"
+          },
+          "expr": "{job=\"veeam\"}"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "wrapLogMessage": true,
+        "sortOrder": "Descending",
+        "enableLogDetails": true
+      }
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "📊 Ressources (agents Zabbix)",
+      "collapsed": false,
+      "panels": [],
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 24,
+        "h": 1
+      }
+    },
+    {
+      "id": 17,
       "type": "timeseries",
       "title": "CPU",
       "description": "Utilisation processeur relevée par l'agent Zabbix (élément « CPU utilization »). Seuils 70 / 90 %.",
       "gridPos": {
         "x": 0,
-        "y": 23,
+        "y": 34,
         "w": 12,
         "h": 8
       },
@@ -485,13 +1090,13 @@
       }
     },
     {
-      "id": 10,
+      "id": 18,
       "type": "timeseries",
       "title": "Mémoire",
       "description": "Utilisation de la mémoire vive (élément « Memory utilization »).",
       "gridPos": {
         "x": 12,
-        "y": 23,
+        "y": 34,
         "w": 12,
         "h": 8
       },
@@ -588,13 +1193,13 @@
       }
     },
     {
-      "id": 11,
+      "id": 19,
       "type": "timeseries",
       "title": "Disque /",
       "description": "Remplissage de la partition système des serveurs Linux (« FS [/]: Space: Used, in % »).",
       "gridPos": {
         "x": 0,
-        "y": 31,
+        "y": 42,
         "w": 12,
         "h": 8
       },
@@ -691,13 +1296,13 @@
       }
     },
     {
-      "id": 12,
+      "id": 20,
       "type": "timeseries",
       "title": "Temps de réponse ICMP",
       "description": "Latence du ping depuis SRV-ZABBIX. Une hausse brutale signale une saturation réseau.",
       "gridPos": {
         "x": 12,
-        "y": 31,
+        "y": 42,
         "w": 12,
         "h": 8
       },

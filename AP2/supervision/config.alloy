@@ -57,6 +57,32 @@ loki.process "wazuh" {
   forward_to = [loki.write.local.receiver]
 }
 
+// ---------- Veeam ----------
+// SRV-AD, SRV-AD2 et SRV-VEEAM envoient l'état des sauvegardes (veeam-status.ps1, toutes les 15 min)
+// Format : "type=sauvegarde host=SRV-AD job=... resultat=SUCCES age_h=.. points=.. taille_go=.."
+loki.source.syslog "veeam" {
+  listener {
+    address       = "10.2.1.3:5515"
+    protocol      = "udp"
+    syslog_format = "rfc3164"
+    labels        = { job = "veeam" }
+  }
+  forward_to = [loki.process.veeam.receiver]
+}
+
+loki.process "veeam" {
+  stage.regex {
+    expression = `type=(?P<type>\S+) host=(?P<host>\S+)`
+  }
+  stage.regex {
+    expression = `resultat=(?P<resultat>\S+)`
+  }
+  stage.labels {
+    values = { type = "", host = "", resultat = "" }
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
 loki.write "local" {
   endpoint {
     url = "http://localhost:3100/loki/api/v1/push"

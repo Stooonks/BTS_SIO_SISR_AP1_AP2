@@ -107,6 +107,31 @@ stat("Agent Zabbix", "État de l'agent sur chaque machine. AGENT ABSENT = l'agen
 stat("Ping", "Réponse au ping du serveur Zabbix (modèle ICMP Ping) : utile pour les équipements sans agent comme pfSense et TrueNAS.",
      [q("ICMP ping")], 10, 5, PING, thr("red", (1, "green")))
 
+row("💾 Sauvegardes Veeam (SRV-VEEAM 10.2.1.53 → copie TrueNAS)")
+VEEAM = [{"type": "value", "options": {"0": {"text": "SUCCÈS", "color": "green"}, "1": {"text": "AVERTISSEMENT", "color": "orange"},
+                                        "2": {"text": "ÉCHEC", "color": "red"}, "3": {"text": "AUCUNE SAUVEGARDE", "color": "dark-red"}}}]
+COPIE = [{"type": "value", "options": {"0": {"text": "COPIE OK", "color": "green"}, "1": {"text": "COPIE EN ÉCHEC", "color": "red"},
+                                       "2": {"text": "JAMAIS FAITE", "color": "orange"}}}]
+SRV = "/^SRV-AD/"
+stat("Dernière sauvegarde", "Résultat de la dernière sauvegarde Veeam de chaque contrôleur de domaine (événement 190 du journal « Veeam Agent »), "
+     "envoyé à Zabbix toutes les 15 min et à la fin de chaque sauvegarde par C:\\Scripts\\veeam-status.ps1.",
+     [q("Veeam : résultat de la dernière sauvegarde", host=SRV)], 8, 5, VEEAM, thr("green"))
+stat("Âge de la sauvegarde", "Heures écoulées depuis la dernière sauvegarde. Sauvegarde quotidienne à 0 h 30 : au-delà de 26 h, Zabbix lève une alerte.",
+     [q("Veeam : âge de la dernière sauvegarde", host=SRV)], 6, 5, None, thr("green", (26, "red")), unit="h")
+stat("Points de restauration", "Nombre de fichiers de sauvegarde (.vbk complète + .vib incrémentales) dans \\\\SRV-VEEAM\\Sauvegardes. Rétention : 14 jours.",
+     [q("Veeam : points de restauration", host=SRV)], 5, 5, None, thr("red", (1, "green")))
+stat("Volume sauvegardé", "Taille des sauvegardes de chaque serveur sur le dépôt.",
+     [q("Veeam : taille des sauvegardes", host=SRV)], 5, 5, None, thr("blue"), unit="decgbytes")
+stat("Dépôt S: libre", "Espace libre sur le disque de sauvegarde de SRV-VEEAM (300 Go). Alerte Zabbix sous 15 %.",
+     [q("Dépôt Veeam : espace libre en %", host="SRV-VEEAM")], 6, 5, None, thr("red", (15, "orange"), (30, "green")), unit="percent")
+stat("Copie TrueNAS", "Résultat de la copie miroir nocturne (4 h) du dépôt vers \\\\truenas.redone.local\\copie-veeam : 2ᵉ copie de la règle 3-2-1.",
+     [q("Copie TrueNAS : résultat", host="SRV-VEEAM")], 6, 5, COPIE, thr("green"))
+panels.append({"id": new_id(), "type": "logs", "title": "Journal des sauvegardes (Loki)", "gridPos": place(12, 5),
+               "description": "Messages envoyés en syslog par les serveurs (Alloy, port UDP 5515, job=\"veeam\").",
+               "datasource": {"type": "loki", "uid": "loki-clamav"},
+               "targets": [{"refId": "A", "datasource": {"type": "loki", "uid": "loki-clamav"}, "expr": "{job=\"veeam\"}"}],
+               "options": {"showTime": True, "wrapLogMessage": True, "sortOrder": "Descending", "enableLogDetails": True}})
+
 row("📊 Ressources (agents Zabbix)")
 ts("CPU", "Utilisation processeur relevée par l'agent Zabbix (élément « CPU utilization »). Seuils 70 / 90 %.", [q("CPU utilization")])
 ts("Mémoire", "Utilisation de la mémoire vive (élément « Memory utilization »).", [q("Memory utilization")])
