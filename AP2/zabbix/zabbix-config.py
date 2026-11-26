@@ -47,7 +47,7 @@ else:
     call('user.update', {'userid': admin['userid'], 'current_passwd': 'zabbix', 'passwd': new})
     acces['ADMIN_PASSWORD'] = new
     with open(ACCES, 'w') as f:
-        f.write(f"URL=http://192.168.100.210/zabbix\nADMIN_USER=Admin\nADMIN_PASSWORD={new}\n")
+        f.write(f"URL=https://192.168.100.210/zabbix\nADMIN_USER=Admin\nADMIN_PASSWORD={new}\n")
     os.chmod(ACCES, 0o600)
     _auth = call('user.login', {'username': 'Admin', 'password': new})
     print('Mot de passe Admin changé (défaut zabbix supprimé)')

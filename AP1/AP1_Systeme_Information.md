@@ -403,7 +403,7 @@ Toutes les interfaces sont publiées sur le réseau d'administration de la salle
 | Proxmox | `https://192.168.100.2:8006` | – |
 | SRV-GLPI (VM 208) | `http://192.168.100.208` | `10.2.1.50` |
 | SRV-WAZUH (VM 209) | `https://192.168.100.209` | `10.2.1.51` |
-| SRV-SUPERVISION (VM 204) – Grafana / Prometheus | `http://192.168.100.204:3000` / `:9090` | `10.2.1.3` |
+| SRV-SUPERVISION (VM 204) – Grafana / Prometheus | `https://192.168.100.204:3000` (Prometheus `:9090` en local seulement) | `10.2.1.3` |
 | SRV-AD (VM 105) | console Proxmox | `10.2.1.10` |
 
 | Accès | Mesure |

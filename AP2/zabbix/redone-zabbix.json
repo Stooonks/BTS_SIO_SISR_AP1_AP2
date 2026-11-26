@@ -20,7 +20,7 @@
     {
       "title": "Interface Zabbix",
       "type": "link",
-      "url": "http://192.168.100.210/zabbix",
+      "url": "https://192.168.100.210/zabbix",
       "targetBlank": true,
       "icon": "external link"
     },
@@ -45,7 +45,7 @@
       "transparent": true,
       "options": {
         "mode": "markdown",
-        "content": "## 📡 RedOne – Supervision Zabbix\n**Zabbix** (SRV-ZABBIX, `10.2.1.52`) interroge chaque minute un **agent** installé sur les serveurs et les postes, et teste par **ping** les équipements sans agent (pfSense, TrueNAS).\nIl évalue des **déclencheurs** (*triggers*) : quand un seuil est franchi, un **problème** apparaît ci-dessous avec sa gravité.\nCe tableau lit Zabbix via son API (utilisateur `grafana` en **lecture seule**, authentification par jeton).\n👉 Survolez **ⓘ** pour le détail de chaque panneau. Interface Zabbix complète : **http://192.168.100.210/zabbix**"
+        "content": "## 📡 RedOne – Supervision Zabbix\n**Zabbix** (SRV-ZABBIX, `10.2.1.52`) interroge chaque minute un **agent** installé sur les serveurs et les postes, et teste par **ping** les équipements sans agent (pfSense, TrueNAS).\nIl évalue des **déclencheurs** (*triggers*) : quand un seuil est franchi, un **problème** apparaît ci-dessous avec sa gravité.\nCe tableau lit Zabbix via son API (utilisateur `grafana` en **lecture seule**, authentification par jeton).\n👉 Survolez **ⓘ** pour le détail de chaque panneau. Interface Zabbix complète : **https://192.168.100.210/zabbix**"
       }
     },
     {

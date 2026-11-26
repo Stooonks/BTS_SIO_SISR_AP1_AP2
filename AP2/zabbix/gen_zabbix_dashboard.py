@@ -76,7 +76,7 @@ text("""## 📡 RedOne – Supervision Zabbix
 **Zabbix** (SRV-ZABBIX, `10.2.1.52`) interroge chaque minute un **agent** installé sur les serveurs et les postes, et teste par **ping** les équipements sans agent (pfSense, TrueNAS).
 Il évalue des **déclencheurs** (*triggers*) : quand un seuil est franchi, un **problème** apparaît ci-dessous avec sa gravité.
 Ce tableau lit Zabbix via son API (utilisateur `grafana` en **lecture seule**, authentification par jeton).
-👉 Survolez **ⓘ** pour le détail de chaque panneau. Interface Zabbix complète : **http://192.168.100.210/zabbix**""", w=16, h=6)
+👉 Survolez **ⓘ** pour le détail de chaque panneau. Interface Zabbix complète : **https://192.168.100.210/zabbix**""", w=16, h=6)
 text("""| Gravité Zabbix | Couleur |
 |---|---|
 | Désastre / Haute | 🔴 |
@@ -143,7 +143,7 @@ dash = {"uid": "redone-zabbix", "title": "RedOne – Zabbix", "tags": ["RedOne",
         "description": "Problèmes, disponibilité et ressources remontés par Zabbix (SRV-ZABBIX)",
         "timezone": "browser", "refresh": "1m", "time": {"from": "now-6h", "to": "now"}, "schemaVersion": 41,
         "editable": True, "graphTooltip": 1,
-        "links": [{"title": "Interface Zabbix", "type": "link", "url": "http://192.168.100.210/zabbix", "targetBlank": True, "icon": "external link"},
+        "links": [{"title": "Interface Zabbix", "type": "link", "url": "https://192.168.100.210/zabbix", "targetBlank": True, "icon": "external link"},
                   {"title": "Centre de supervision sécurité", "type": "link", "url": "/d/redone-soc", "icon": "dashboard"}],
         "panels": panels}
 with open(sys.argv[1], "w", encoding="utf-8") as f:
