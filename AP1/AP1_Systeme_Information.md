@@ -68,20 +68,26 @@ Les VLAN ID RedOne (10 à 400) chevauchent les plages réservées aux étudiants
 
 ### 3.2 Serveurs (VLAN Serveurs – `172.16.0.0/17`)
 
-| Service | IP cible RedOne | IP actuelle (maquette) | VMID |
-|---|---|---|---|
-| pfSense (interface Serveurs) | `172.16.127.254` | `10.1.0.15` | 100 – 199 |
-| Active Directory / DNS / DHCP | `172.16.0.1` | `192.168.100.2` ⚠️ | 100 – 199 |
-| GLPI (VM 208 SRV-GLPI) | `172.16.0.50` | `192.168.100.208` | 208 |
-| Wazuh | `172.16.0.4` | `10.1.0.4` | 100 – 199 |
-| Zabbix / Grafana | `172.16.0.5` | `10.1.0.5` (ou `192.168.100.133`, à confirmer) | 100 – 199 |
+Dans la maquette, les serveurs RedOne sont sur le **VLAN 200 du Proxmox (`10.2.1.0/24`, passerelle pfSense `10.2.1.1`)**. Les serveurs Linux et SRV-VEEAM ont en plus une carte sur le réseau d'administration de la salle (`192.168.100.0/24`) pour leur interface web. Plan d'adressage **réel, vérifié le 26/11/2026** :
 
-Les serveurs migrent de l'**IP actuelle** vers l'**IP cible** au fur et à mesure. Le DHCP de chaque VLAN utilisateur est relayé par pfSense vers l'AD (*Services → DHCP Relay*) ou servi directement par pfSense.
+| Machine | VMID | IP VLAN 200 | IP administration | Nom DNS (`RedOne.local`) | IP cible RedOne |
+|---|---|---|---|---|---|
+| pfSense (passerelle VLAN 200, VM commune à la salle) | 100 | `10.2.1.1` | – | `pfsense` | `172.16.127.254` |
+| SRV-SUPERVISION (Prometheus, Grafana, Loki, ClamAV) | 204 | `10.2.1.3` | `192.168.100.204` | `srv-supervision`, alias `grafana` | `172.16.0.5` |
+| TrueNAS (stockage, copie des sauvegardes) | 205 | `10.2.1.7` | – | `truenas`, alias `nas` | `172.16.0.7` |
+| SRV-AD2 (contrôleur de domaine secondaire, DNS) | 206 | `10.2.1.9` | – | `srv-ad2` | `172.16.0.2` |
+| SRV-AD **REDONE** (contrôleur de domaine, DNS) | 105 | `10.2.1.10` | – | `redone` | `172.16.0.1` |
+| POSTE-1 | 112 | `10.2.1.11` | – | `poste-1` | VLAN utilisateur |
+| POSTE-2 | 203 | `10.2.1.15` | – | `poste-2` | VLAN utilisateur |
+| SRV-GLPI | 208 | `10.2.1.50` | `192.168.100.208` | `srv-glpi`, alias `glpi` | `172.16.0.50` |
+| SRV-WAZUH | 209 | `10.2.1.51` | `192.168.100.209` | `srv-wazuh`, alias `wazuh` | `172.16.0.4` |
+| SRV-ZABBIX | 210 | `10.2.1.52` | `192.168.100.210` | `srv-zabbix`, alias `zabbix` | `172.16.0.6` |
+| SRV-VEEAM (sauvegardes) | 211 | `10.2.1.53` | `192.168.100.211` | `srv-veeam`, alias `veeam` | `172.16.0.8` |
+| Proxmox VE (hyperviseur de la salle) | – | – | `192.168.100.2` | – | – |
 
-> [!WARNING]
-> **Incohérences relevées dans l'existant** (supprimer cet encadré une fois corrigé) :
-> - pfSense est noté en `10.0.1.251` (section 2) et en `10.1.0.15` : vérifier s'il s'agit de deux interfaces (WAN / LAN).
-> - `192.168.100.2` est attribuée à la fois à Proxmox et à l'AD : une seule machine peut avoir cette adresse.
+**DNS** : toutes les machines (Windows et Linux) interrogent les deux contrôleurs de domaine `10.2.1.10` puis `10.2.1.9`. La zone `RedOne.local` contient un enregistrement A pour chaque machine, et une **zone inverse `1.2.10.in-addr.arpa`** (intégrée à l'AD) fournit les PTR. Les requêtes Internet sont transmises aux redirecteurs `10.2.1.1` (pfSense) et `8.8.8.8`.
+
+La colonne « IP cible RedOne » correspond au plan du cahier des charges (VLAN Serveurs `172.16.0.0/17`), appliqué lors de la mise en production. Le DHCP de chaque VLAN utilisateur est relayé par pfSense vers l'AD (*Services → DHCP Relay*) ou servi directement par pfSense.
 
 ### 3.3 Hors plan RedOne
 

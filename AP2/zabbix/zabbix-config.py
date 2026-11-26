@@ -85,9 +85,10 @@ HOTES = [
     ('SRV-WAZUH', '10.2.1.51', 'RedOne/Serveurs Linux', [T_LINUX, T_ICMP], True, 'VM 209 - Wazuh 4.14 (SIEM)'),
     ('SRV-AD', '10.2.1.10', 'RedOne/Serveurs Windows', [T_WIN, T_ICMP], True, 'VM 105 - contrôleur de domaine REDONE (RedOne.local), DNS'),
     ('SRV-AD2', '10.2.1.9', 'RedOne/Serveurs Windows', [T_WIN, T_ICMP], True, 'VM 206 - contrôleur de domaine secondaire'),
+    ('SRV-VEEAM', '10.2.1.53', 'RedOne/Serveurs Windows', [T_WIN, T_ICMP], True, 'VM 211 - Veeam, dépôt de sauvegarde SRV-VEEAM/Sauvegardes (10.2.1.53 / 192.168.100.211)'),
     ('POSTE-1', '10.2.1.11', 'RedOne/Postes de travail', [T_WIN], True, 'VM 112 - poste Windows 11 joint au domaine'),
     ('POSTE-2', '10.2.1.15', 'RedOne/Postes de travail', [T_WIN], True, 'VM 203 - poste Windows 11 joint au domaine'),
-    ('PFSENSE', '10.2.1.1', 'RedOne/Réseau et stockage', [T_ICMP], False, 'VM 207 - pare-feu / passerelle du VLAN 200'),
+    ('PFSENSE', '10.2.1.1', 'RedOne/Réseau et stockage', [T_ICMP], False, 'VM 100 (commune à la salle) - pare-feu / passerelle du VLAN 200'),
     ('TRUENAS', '10.2.1.7', 'RedOne/Réseau et stockage', [T_ICMP], False, 'VM 205 - stockage (NAS)'),
 ]
 hid = {}
