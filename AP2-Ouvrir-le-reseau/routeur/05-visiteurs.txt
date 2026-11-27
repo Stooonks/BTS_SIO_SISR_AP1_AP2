@@ -1,0 +1,65 @@
+# R-REDONE : réseau Visiteurs isolé (cahier des charges RedOne : « Visiteurs : DNS, DHCP et Internet uniquement »)
+# VLAN 202 (plage VLAN 200-299 de l'étudiant), réseau 10.2.3.0/24, port Gi0/1/1 du switch intégré (borne Wi-Fi ou PC visiteur)
+terminal length 0
+configure terminal
+vlan 202
+ name VISITEURS
+ exit
+# --- Passerelle des visiteurs ---
+interface Vlan202
+ description VISITEURS - Internet seulement (NAT), isole du reseau RedOne
+ ip address 10.2.3.1 255.255.255.0
+ ip nat inside
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ no shutdown
+ exit
+# --- Port d'accès visiteurs ---
+interface GigabitEthernet0/1/1
+ description VISITEURS - borne Wi-Fi ou poste visiteur
+ switchport mode access
+ switchport access vlan 202
+ spanning-tree portfast
+ no shutdown
+ exit
+# --- DHCP : les visiteurs reçoivent une adresse du routeur (bail de 4 h) ---
+ip dhcp excluded-address 10.2.3.1 10.2.3.19
+ip dhcp pool VISITEURS
+ network 10.2.3.0 255.255.255.0
+ default-router 10.2.3.1
+ dns-server 10.2.1.10 192.168.100.1
+ domain-name invites.redone.local
+ lease 0 4
+ exit
+# --- Isolement : DNS de l'AD autorisé, tout le reste du réseau interne interdit, Internet autorisé ---
+ip access-list extended VISITEURS-IN
+ remark DHCP et diagnostic vers la passerelle visiteurs
+ permit udp any any eq bootps
+ permit icmp any host 10.2.3.1 echo
+ remark DNS : serveurs autorises par le cahier des charges
+ permit udp any host 10.2.1.10 eq domain
+ permit tcp any host 10.2.1.10 eq domain
+ permit udp any host 192.168.100.1 eq domain
+ remark Reseaux internes interdits (journalise vers Wazuh)
+ deny ip any 10.0.0.0 0.255.255.255 log
+ deny ip any 172.16.0.0 0.15.255.255 log
+ deny ip any 192.168.0.0 0.0.255.255 log
+ remark Internet
+ permit ip any any
+ exit
+interface Vlan202
+ ip access-group VISITEURS-IN in
+ exit
+# --- NAT : les visiteurs sortent avec l'adresse du routeur ---
+ip access-list standard NAT-VISITEURS
+ permit 10.2.3.0 0.0.0.255
+ exit
+interface GigabitEthernet0/0/0
+ ip nat outside
+ exit
+ip nat inside source list NAT-VISITEURS interface GigabitEthernet0/0/0 overload
+end
+show ip interface brief | include Vlan202|0/1/1|0/0/0
+show ip access-lists VISITEURS-IN
+write memory

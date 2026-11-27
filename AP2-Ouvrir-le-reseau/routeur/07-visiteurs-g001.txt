@@ -1,0 +1,27 @@
+# R-REDONE : le réseau Visiteurs passe sur le port routé dédié GigabitEthernet0/0/1 (au lieu du VLAN 202 du switch intégré)
+# Même réseau 10.2.3.0/24, même DHCP, même NAT, même ACL d'isolement VISITEURS-IN.
+terminal length 0
+configure terminal
+interface Vlan202
+ no ip access-group VISITEURS-IN in
+ no ip nat inside
+ no ip address
+ shutdown
+ exit
+interface GigabitEthernet0/1/1
+ description NON UTILISE - eteint
+ shutdown
+ exit
+interface GigabitEthernet0/0/1
+ description VISITEURS - Internet seulement (NAT), isole du reseau RedOne
+ ip address 10.2.3.1 255.255.255.0
+ ip nat inside
+ ip access-group VISITEURS-IN in
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ no shutdown
+ exit
+end
+show ip interface brief | include 0/0/1|Vlan202
+write memory

@@ -1,0 +1,53 @@
+# R-REDONE : les 4 ports du switch intégré deviennent des prises Visiteurs (VLAN 150 = VLAN Visiteurs du cahier des charges RedOne)
+# Réseau 10.2.4.0/24 ; mêmes règles que le port G0/0/1 (10.2.3.0/24) : DHCP, NAT, ACL d'isolement VISITEURS-IN
+terminal length 0
+configure terminal
+# --- Ancien VLAN 202, remplacé ---
+no interface Vlan202
+no vlan 202
+vlan 150
+ name VISITEURS
+ exit
+# --- Passerelle des prises Visiteurs du switch ---
+interface Vlan150
+ description VISITEURS (prises du switch) - Internet seulement (NAT), isole du reseau RedOne
+ ip address 10.2.4.1 255.255.255.0
+ ip nat inside
+ ip access-group VISITEURS-IN in
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ no shutdown
+ exit
+interface range GigabitEthernet0/1/0 - 3
+ description VISITEURS - prise visiteur (VLAN 150)
+ switchport mode access
+ switchport access vlan 150
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+ # Autorisation des appareils : 2 adresses MAC au plus par prise, apprises au premier branchement puis figées dans la configuration
+ switchport port-security maximum 2
+ switchport port-security mac-address sticky
+ switchport port-security violation restrict
+ switchport port-security
+ no shutdown
+ exit
+# --- DHCP des prises du switch (bail de 4 h) ---
+ip dhcp excluded-address 10.2.4.1 10.2.4.19
+ip dhcp pool VISITEURS-SWITCH
+ network 10.2.4.0 255.255.255.0
+ default-router 10.2.4.1
+ dns-server 10.2.1.10 192.168.100.1
+ domain-name invites.redone.local
+ lease 0 4
+ exit
+# --- NAT : ajout du nouveau réseau ---
+ip access-list standard NAT-VISITEURS
+ permit 10.2.4.0 0.0.0.255
+ exit
+# --- Traçabilité légale (CPCE art. L34-1) : chaque connexion d'un visiteur vers Internet est journalisée (IP interne, IP publique, heure) ---
+ip nat log translations syslog
+end
+show ip interface brief | include 0/0/1|0/1/|Vlan
+show ip access-lists NAT-VISITEURS
+write memory

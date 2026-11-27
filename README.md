@@ -1,31 +1,32 @@
-# BTS SIO SISR – AP1 / AP2
+# BTS SIO SISR – Ateliers de professionnalisation RedOne
 
-Dépôt de documentation des ateliers professionnels (AP) réalisés en équipe sur l'infrastructure Proxmox de la section, dans le contexte du laboratoire pharmaceutique **RedOne**.
+Infrastructure du **laboratoire pharmaceutique RedOne** (site pilote de Paris), réalisée sur l'hyperviseur Proxmox de la section et un routeur Cisco physique.
 
-| Dossier | Contenu |
+![Schéma de l'infrastructure](AP1-Superviser-et-securiser/captures/schema_infrastructure.jpg)
+
+## Les deux ateliers
+
+| | Problématique | Contenu |
+|---|---|---|
+| **[AP1 – Superviser et sécuriser](AP1-Superviser-et-securiser/README.md)** | Partant d'une infrastructure de base (un AD, deux postes), comment la rendre **maîtrisée** : surveillée, protégée, sauvegardée et conforme au RGPD ? | Active Directory et GLPI, supervision Zabbix et Grafana, SIEM Wazuh et réponse active, antivirus, pare-feux, autorité de certification, sauvegarde 3-2-1 et PRA, RGPD |
+| **[AP2 – Ouvrir le réseau](AP2-Ouvrir-le-reseau/README.md)** | Le réseau est sécurisé… mais n'existe-t-il que le réseau interne ? Comment **s'ouvrir vers l'extérieur sans s'exposer** ? | Routeur Cisco sécurisé et supervisé, réseau Visiteurs isolé (DHCP, NAT, ACL), traçabilité légale des connexions, sauvegarde automatique de la configuration |
+
+## Organisation du dépôt
+
+```
+AP1-Superviser-et-securiser/   dossier de l'AP1 (README), captures, scripts par outil
+AP2-Ouvrir-le-reseau/          dossier de l'AP2 (README), captures, configuration du routeur, scripts
+annexes/                       contexte RedOne, procédure PRA, conformité RGPD détaillée, veille
+```
+
+| Annexe | Contenu |
 |---|---|
-| [`CONTEXTE_RedOne.md`](CONTEXTE_RedOne.md) | Contexte de l'entreprise, SI existant, plan VLAN, besoins et axes d'évolution |
-| [`AP1/`](AP1/AP1_Systeme_Information.md) | Conception et mise en place du système d'information : adressage, VLAN, pfSense, Active Directory, GLPI |
-| [`AP2/`](AP2/AP2_Exploitation_Securite.md) | Exploitation et sécurité : supervision (Zabbix / Grafana), Wazuh, sauvegarde / PRA, RGPD |
-| [`AP2/RGPD_Conformite.md`](AP2/RGPD_Conformite.md) | En quoi l'infrastructure respecte le RGPD : mesures appliquées et vérifications |
-| [`Veille_Portfolio/`](Veille_Portfolio/README.md) | Veille technologique et liens vers le portfolio |
-
-## Équipe
-
-| Étudiant | Rôle sur l'AP |
-|---|---|
-| Fahim | Schéma réseau |
-| Xavier | VLAN sur pfSense ✅ |
-| Loïc | VLAN sur pfSense ✅ |
-| Yan | Groupes AD (BTS SIO1, SLAM, SISR) |
-| Thibaut | Groupes AD (BTS SIO1, SLAM, SISR) |
-| Minkaïl | à compléter |
-| Josh | à compléter |
-
-**Auteur de ce dépôt :** à compléter
+| [Contexte RedOne](annexes/Contexte_RedOne.md) | l'entreprise, le SI existant, le plan VLAN et les besoins du cahier des charges |
+| [Procédure PRA](annexes/Procedure_PRA.md) | objectifs de reprise, rôles, ordre de redémarrage, 6 scénarios de sinistre |
+| [Conformité RGPD](annexes/Conformite_RGPD.md) | registre des traitements, mesures appliquées et commandes de vérification |
+| [Veille et portfolio](annexes/Veille_Portfolio.md) | veille technologique |
 
 ## Règles du dépôt
 
-- **Aucun mot de passe, clé API, token ou fichier de configuration brut** n'est versionné ici (voir [`.gitignore`](.gitignore)). Les identifiants sont conservés hors dépôt (gestionnaire de mots de passe de l'équipe).
-- Les captures d'écran vont dans le dossier `captures/` de chaque AP et doivent être vérifiées (pas d'identifiants visibles) avant le commit.
-- Les comptes utilisateurs utilisés dans les exemples sont fictifs.
+- **Aucun mot de passe, clé ou jeton** n'est versionné : les scripts lisent les secrets sur les serveurs, et les identifiants sont conservés hors dépôt.
+- Les comptes et données de la maquette (dont les données de santé) sont **fictifs**.

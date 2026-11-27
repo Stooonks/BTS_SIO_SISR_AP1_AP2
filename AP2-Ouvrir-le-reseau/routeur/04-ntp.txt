@@ -1,0 +1,11 @@
+# R-REDONE : heure synchronisée (horodatage fiable des journaux envoyés à Wazuh)
+# HEURE_ACTUELLE est remplacée à l'envoi par l'heure du poste (rattrapage immédiat de l'écart), puis NTP maintient l'heure.
+terminal length 0
+clock set HEURE_ACTUELLE
+configure terminal
+ntp server 10.2.1.10 prefer
+ntp server 192.168.100.1
+ntp source GigabitEthernet0/0/0
+end
+show clock detail
+write memory

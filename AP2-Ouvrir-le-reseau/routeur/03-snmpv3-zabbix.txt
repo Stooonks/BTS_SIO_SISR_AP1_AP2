@@ -1,0 +1,20 @@
+# R-REDONE : supervision par Zabbix en SNMPv3 authPriv (authentification SHA + chiffrement AES-128)
+# CLE_AUTH et CLE_PRIV sont remplacées à l'envoi par les clés du fichier d'accès (jamais dans le dépôt).
+terminal length 0
+configure terminal
+# --- Seul SRV-ZABBIX peut interroger le routeur ---
+ip access-list standard SNMP-ZABBIX
+ permit host 192.168.100.210
+ deny any log
+ exit
+# --- Lecture seule, SNMPv3 uniquement (pas de communauté v1/v2c en clair) ---
+snmp-server view LECTURE iso included
+snmp-server group ZABBIX v3 priv read LECTURE access SNMP-ZABBIX
+snmp-server user zabbix ZABBIX v3 auth sha CLE_AUTH priv aes 128 CLE_PRIV
+snmp-server location Salle serveur RedOne - site pilote Paris
+snmp-server contact DSI RedOne - Reseau et Systeme
+snmp-server ifindex persist
+end
+show snmp user
+show snmp group
+write memory

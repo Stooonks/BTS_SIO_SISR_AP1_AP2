@@ -1,0 +1,32 @@
+# R-REDONE : raccordement au réseau d'administration (port GigabitEthernet0/0/0) et envoi des journaux vers Wazuh
+terminal length 0
+configure terminal
+interface Vlan1
+ no ip address
+ shutdown
+ exit
+# --- Ports du switch intégré inutilisés : éteints (personne ne peut s'y brancher) ---
+interface range GigabitEthernet0/1/0 - 3
+ description NON UTILISE - eteint
+ shutdown
+ exit
+# --- Adresse d'administration sur le port routé G0/0/0 (réseau de la salle) ---
+interface GigabitEthernet0/0/0
+ description ADMIN - reseau de la salle (SSH, journaux Wazuh)
+ ip address 192.168.100.212 255.255.255.0
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ no shutdown
+ exit
+ip route 0.0.0.0 0.0.0.0 192.168.100.1
+# --- Journaux : horodatés, envoyés à SRV-WAZUH en syslog (UDP 514) ---
+logging source-interface GigabitEthernet0/0/0
+logging trap informational
+logging host 192.168.100.209
+logging buffered 64000 informational
+end
+show ip interface brief
+ping 192.168.100.1
+ping 192.168.100.209
+write memory

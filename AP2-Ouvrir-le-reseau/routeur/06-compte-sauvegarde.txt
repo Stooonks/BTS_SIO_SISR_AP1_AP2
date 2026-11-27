@@ -1,0 +1,24 @@
+﻿# R-REDONE : compte de sauvegarde de la configuration, utilisé par SRV-VEEAM (192.168.100.211)
+# Authentification par clé SSH uniquement : le mot de passe est aléatoire, jamais noté ni stocké (MOTDEPASSE_ALEATOIRE est tiré à l'envoi).
+terminal length 0
+configure terminal
+username svc-sauvegarde privilege 15 algorithm-type scrypt secret MOTDEPASSE_ALEATOIRE
+ip ssh pubkey-chain
+ username svc-sauvegarde
+  key-string
+   AAAAB3NzaC1yc2EAAAADAQABAAABAQCgD1nYBaR64wIodQgaZcak9hJ+mOFcDCLF
+   5iizlswzB3YRYs8BS1Hqva9ewwK0fnpbY7VTHbmpPKGL8hgNPMjbAzIB8KeAazon
+   tLl+JKz/Oi85lJHdjSu4bzedxxkc1A6u1o6kpwAXVYEmQqnVCCjSd/mBbXAQIv+r
+   1w+nIATcs5MVdd9dtwfnQwp6nrUI4zz0+wNRQf4R56Qn5P1J9sWgWILmtzaE1OTr
+   88tVlw2HbZ0f7rCYpzBce5hIzIn+pyQai5vcjveTLVjDnkci0OmLii+QPmNtrm7B
+   CzMQuDuyDXShUTu1oZFGK0r6tmLDHwdShN6bol4iNh8tMYQ60yrL
+   exit
+  exit
+ exit
+# --- SRV-VEEAM autorisé en SSH, en plus du poste d'administration ---
+ip access-list standard ADMIN-SSH
+ 15 permit host 192.168.100.211
+ exit
+end
+show ip access-lists ADMIN-SSH
+write memory

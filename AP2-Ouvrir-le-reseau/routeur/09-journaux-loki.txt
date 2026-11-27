@@ -1,0 +1,8 @@
+# R-REDONE : journaux envoyés aussi à SRV-SUPERVISION (rsyslog UDP 5516 -> Alloy -> Loki, conservés 1 an)
+# Utilisés par Grafana (appareils visiteurs, connexions) et pour l'obligation de conservation des données de connexion (CPCE art. L34-1)
+configure terminal
+logging host 192.168.100.204 transport udp port 5516
+logging console warnings
+end
+show logging | include Logging to
+write memory

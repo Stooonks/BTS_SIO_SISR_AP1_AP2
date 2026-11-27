@@ -1,0 +1,293 @@
+﻿enable
+Router#
+terminal length 0
+Router#
+show version
+Cisco IOS XE Software, Version 16.08.01
+Cisco IOS Software [Fuji], ISR Software (ARMV8EB_LINUX_IOSD-UNIVERSALK9_IAS-M), Version 16.8.1, RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2018 by Cisco Systems, Inc.
+Compiled Tue 27-Mar-18 10:56 by mcpre
+
+
+Cisco IOS-XE software, Copyright (c) 2005-2018 by cisco Systems, Inc.
+All rights reserved.  Certain components of Cisco IOS-XE software are
+licensed under the GNU General Public License ("GPL") Version 2.0.  The
+software code licensed under GPL Version 2.0 is free software that comes
+with ABSOLUTELY NO WARRANTY.  You can redistribute and/or modify such
+GPL code under the terms of GPL Version 2.0.  For more details, see the
+documentation or "License Notice" file accompanying the IOS-XE software,
+or the applicable URL provided on the flyer accompanying the IOS-XE
+software.
+
+
+ROM: IOS-XE ROMMON
+
+Router uptime is 2 minutes
+Uptime for this control processor is 4 minutes
+System returned to ROM by PowerOn
+System image file is "bootflash:c1100-universalk9_ias.16.08.01.SPA.bin"
+Last reload reason: PowerOn
+
+
+
+This product contains cryptographic features and is subject to United
+States and local country laws governing import, export, transfer and
+use. Delivery of Cisco cryptographic products does not imply
+third-party authority to import, export, distribute or use encryption.
+Importers, exporters, distributors and users are responsible for
+compliance with U.S. and local country laws. By using this product you
+agree to comply with applicable laws and regulations. If you are unable
+to comply with U.S. and local laws, return this product immediately.
+
+A summary of U.S. laws governing Cisco cryptographic products may be found at:
+http://www.cisco.com/wwl/export/crypto/tool/stqrg.html
+
+If you require further assistance please contact us by sending email to
+export@cisco.com.
+
+
+
+Suite License Information for Module:'esg' 
+
+--------------------------------------------------------------------------------
+Suite                 Suite Current         Type           Suite Next reboot     
+--------------------------------------------------------------------------------
+FoundationSuiteK9     None                  None           None                  
+securityk9
+appxk9
+
+
+Technology Package License Information: 
+
+-----------------------------------------------------------------
+Technology    Technology-package           Technology-package
+              Current       Type           Next reboot  
+------------------------------------------------------------------
+appxk9           appxk9           Permanent        appxk9
+securityk9       securityk9       Permanent        securityk9
+ipbase           ipbasek9         Permanent        ipbasek9
+
+cisco C1111-4P (1RU) processor with 1456982K/6147K bytes of memory.
+Processor board ID FCZ2342C1C4
+1 Virtual Ethernet interface
+6 Gigabit Ethernet interfaces
+32768K bytes of non-volatile configuration memory.
+4194304K bytes of physical memory.
+2863103K bytes of flash memory at bootflash:.
+0K bytes of WebUI ODM Files at webui:.
+
+Configuration register is 0x2142
+
+Router#
+show inventory
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+INFO: Please use "show license UDI" to get serial number for licensing.
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+NAME: "Chassis", DESCR: "Cisco C1111-4P Chassis"
+PID: C1111-4P          , VID: V01  , SN: FCZ2342C1C4
+
+NAME: "Power Supply Module 0", DESCR: "External Power Supply Module"
+PID: PWR-12V           , VID: V01  , SN: JAB0929092D
+
+NAME: "module 0", DESCR: "Cisco C1111-4P Built-In NIM controller"
+PID: C1111-4P          , VID:      , SN:            
+
+NAME: "NIM subslot 0/0", DESCR: "Front Panel 2 port Gigabitethernet Module"
+PID: C1111-2x1GE       , VID: V01  , SN:            
+
+NAME: "NIM subslot 0/1", DESCR: "C1111-ES-4"
+PID: C1111-ES-4        , VID: V01  , SN:            
+
+NAME: "module R0", DESCR: "Cisco C1111-4P Route Processor"
+PID: C1111-4P          , VID: V01  , SN: FOC233888XU
+
+NAME: "module F0", DESCR: "Cisco C1111-4P Forwarding Processor"
+PID: C1111-4P          , VID:      , SN:            
+
+
+Router#
+show ip interface brief
+Interface              IP-Address      OK? Method Status                Protocol
+GigabitEthernet0/0/0   unassigned      YES unset  down                  down    
+GigabitEthernet0/0/1   unassigned      YES unset  down                  down    
+GigabitEthernet0/1/0   unassigned      YES unset  down                  down    
+GigabitEthernet0/1/1   unassigned      YES unset  down                  down    
+GigabitEthernet0/1/2   unassigned      YES unset  down                  down    
+GigabitEthernet0/1/3   unassigned      YES unset  down                  down    
+Vlan1                  unassigned      YES unset  up                    down    
+Router#
+show running-config
+Building configuration...
+
+
+Current configuration : 1389 bytes
+!
+! Last configuration change at 15:00:12 UTC Thu Nov 26 2026
+!
+version 16.8
+service timestamps debug datetime msec
+service timestamps log datetime msec
+platform qfp utilization monitor load 80
+no platform punt-keepalive disable-kernel-core
+!
+hostname Router
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+vtp mode transparent
+!
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+license udi pid C1111-4P sn FCZ2342C1C4
+license accept end user agreement
+license boot level securityk9
+no license smart enable
+!
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+!
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+vlan internal allocation policy ascending
+!
+vlan 100
+ name WIDIS
+!
+vlan 199
+ name VLAN_199
+!
+vlan 900
+ name DefautVlan
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface GigabitEthernet0/0/0
+ no ip address
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ no ip address
+ negotiation auto
+!
+interface GigabitEthernet0/1/0
+!
+interface GigabitEthernet0/1/1
+!
+interface GigabitEthernet0/1/2
+!
+interface GigabitEthernet0/1/3
+!
+interface Vlan1
+ no ip address
+!
+ip forward-protocol nd
+no ip http server
+ip http secure-server
+!
+!
+!
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ transport input none
+ stopbits 1
+line vty 0 4
+ login
+!
+wsma agent exec
+!
+wsma agent config
+!
+wsma agent filesys
+!
+wsma agent notify
+!
+!
+end
+
+Router#
+show users
+    Line       User       Host(s)              Idle       Location
+*  0 con 0                idle                 00:00:00   
+
+  Interface    User               Mode         Idle     Peer Address
+
+Router#
+show ip ssh
+SSH Disabled - version 1.99
+%Please create RSA keys to enable SSH (and of atleast 768 bits for SSH v2).
+Authentication methods:publickey,keyboard-interactive,password
+Authentication Publickey Algorithms:x509v3-ssh-rsa,ssh-rsa
+Hostkey Algorithms:x509v3-ssh-rsa,ssh-rsa
+Encryption Algorithms:aes128-ctr,aes192-ctr,aes256-ctr
+MAC Algorithms:hmac-sha2-256,hmac-sha2-512,hmac-sha1,hmac-sha1-96
+KEX Algorithms:diffie-hellman-group-exchange-sha1,diffie-hellman-group14-sha1
+Authentication timeout: 120 secs; Authentication retries: 3
+Minimum expected Diffie Hellman key size : 2048 bits
+IOS Keys in SECSH format(ssh-rsa, base64 encoded): NONE
+Router#
+show license summary
+                      ^
+% Invalid input detected at '^' marker.
+
+Router#

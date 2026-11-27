@@ -1,0 +1,68 @@
+# R-REDONE : sécurisation de l'accès d'administration (recommandations ANSSI)
+# Les deux mots de passe (compte admin-fahim et enable) sont tapés par l'étudiant dans la console, pas ici.
+enable
+configure terminal
+# --- Identité et heure (horodatage fiable des journaux) ---
+hostname R-REDONE
+ip domain name redone.local
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
+service timestamps log datetime msec localtime show-timezone
+service timestamps debug datetime msec localtime show-timezone
+# --- Mots de passe : jamais en clair, 12 caractères minimum (CNIL / ANSSI) ---
+service password-encryption
+security passwords min-length 12
+# --- Services inutiles ou dangereux coupés ---
+no ip http server
+no ip http secure-server
+no ip domain lookup
+no service pad
+no ip source-route
+no cdp run
+# --- Blocage des attaques par force brute ---
+login block-for 120 attempts 3 within 60
+login on-failure log
+login on-success log
+# --- SSH v2 uniquement (clé RSA 2048 bits) ---
+crypto key generate rsa general-keys modulus 2048
+ip ssh version 2
+ip ssh time-out 60
+ip ssh authentication-retries 3
+# --- Administration réservée au poste d'administration ---
+ip access-list standard ADMIN-SSH
+ permit host 192.168.100.141
+ deny any log
+ exit
+# --- Console : compte obligatoire, déconnexion après 5 min ---
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login local
+ exit
+# --- Accès à distance : SSH seulement, depuis le poste admin seulement ---
+line vty 0 4
+ access-class ADMIN-SSH in
+ exec-timeout 5 0
+ transport input ssh
+ login local
+ exit
+# --- Bannière légale (information des utilisateurs, RGPD) ---
+banner login % ACCES RESERVE - RedOne. Equipement a usage professionnel. Toute connexion est journalisee (Wazuh). Acces non autorise interdit (art. 323-1 du Code penal). Contact : dpo@redone.com %
+# --- Journal de toutes les modifications de configuration (qui, quoi, quand) ---
+archive
+ log config
+  logging enable
+  notify syslog contenttype plaintext
+  hidekeys
+  exit
+ exit
+end
+# --- Démarrage normal (la configuration enregistrée sera chargée au prochain démarrage) ---
+configure terminal
+config-register 0x2102
+end
+
+# --- Ajout : pendant un blocage, le poste d'administration reste autorisé ---
+configure terminal
+login quiet-mode access-class ADMIN-SSH
+end

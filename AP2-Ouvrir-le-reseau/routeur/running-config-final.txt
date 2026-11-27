@@ -1,0 +1,287 @@
+
+
+
+Building configuration...
+
+
+Current configuration : 6040 bytes
+!
+! Last configuration change at 09:41:35 CET Fri Nov 27 2026 by admin-fahim
+! NVRAM config last updated at 09:41:39 CET Fri Nov 27 2026 by admin-fahim
+!
+version 16.8
+no service pad
+service timestamps debug datetime msec localtime show-timezone
+service timestamps log datetime msec localtime show-timezone
+service password-encryption
+platform qfp utilization monitor load 80
+no platform punt-keepalive disable-kernel-core
+!
+hostname R-REDONE
+!
+boot-start-marker
+boot-end-marker
+!
+!
+security passwords min-length 12
+logging buffered 64000 informational
+logging console warnings
+enable secret 9 <chiffre>
+!
+no aaa new-model
+clock timezone CET 1 0
+clock summer-time CEST recurring last Sun Mar 2:00 last Sun Oct 3:00
+no ip source-route
+!
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name redone.local
+ip dhcp excluded-address 10.2.3.1 10.2.3.19
+ip dhcp excluded-address 10.2.4.1 10.2.4.19
+!
+ip dhcp pool VISITEURS
+ network 10.2.3.0 255.255.255.0
+ default-router 10.2.3.1 
+ dns-server 10.2.1.10 192.168.100.1 
+ domain-name invites.redone.local
+ lease 0 4
+!
+ip dhcp pool VISITEURS-SWITCH
+ network 10.2.4.0 255.255.255.0
+ default-router 10.2.4.1 
+ dns-server 10.2.1.10 192.168.100.1 
+ domain-name invites.redone.local
+ lease 0 4
+!
+!
+!
+login block-for 120 attempts 3 within 60
+login quiet-mode access-class ADMIN-SSH
+login on-failure log
+login on-success log
+!
+!
+!
+!
+!
+!
+!
+subscriber templating
+! 
+! 
+! 
+! 
+vtp mode transparent
+!
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+license udi pid C1111-4P sn FCZ2342C1C4
+license accept end user agreement
+license boot level securityk9
+no license smart enable
+archive
+ log config
+  logging enable
+  notify syslog contenttype plaintext
+  hidekeys
+!
+diagnostic bootup level minimal
+!
+spanning-tree extend system-id
+!
+!
+username admin-fahim privilege 15 secret 9 <chiffre>
+username svc-sauvegarde privilege 15 secret 9 <chiffre>
+!
+redundancy
+ mode none
+!
+!
+!
+!
+!
+vlan internal allocation policy ascending
+!
+vlan 100
+ name WIDIS
+!
+vlan 150
+ name VISITEURS
+!
+vlan 199
+ name VLAN_199
+!
+vlan 900
+ name DefautVlan
+no cdp run
+!
+!
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+! 
+! 
+!
+!
+interface GigabitEthernet0/0/0
+ description ADMIN - reseau de la salle (SSH, journaux Wazuh)
+ ip address 192.168.100.212 255.255.255.0
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ ip nat outside
+ negotiation auto
+!
+interface GigabitEthernet0/0/1
+ description VISITEURS - Internet seulement (NAT), isole du reseau RedOne
+ ip address 10.2.3.1 255.255.255.0
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ ip nat inside
+ ip access-group VISITEURS-IN in
+ negotiation auto
+!
+interface GigabitEthernet0/1/0
+ description VISITEURS - prise visiteur (VLAN 150)
+ switchport access vlan 150
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface GigabitEthernet0/1/1
+ description VISITEURS - prise visiteur (VLAN 150)
+ switchport access vlan 150
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface GigabitEthernet0/1/2
+ description VISITEURS - prise visiteur (VLAN 150)
+ switchport access vlan 150
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface GigabitEthernet0/1/3
+ description VISITEURS - prise visiteur (VLAN 150)
+ switchport access vlan 150
+ switchport mode access
+ spanning-tree portfast
+ spanning-tree bpduguard enable
+!
+interface Vlan1
+ description ADMIN - SSH et journaux Wazuh
+ no ip address
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ shutdown
+!
+interface Vlan150
+ description VISITEURS (prises du switch) - Internet seulement (NAT), isole du reseau RedOne
+ ip address 10.2.4.1 255.255.255.0
+ no ip redirects
+ no ip unreachables
+ no ip proxy-arp
+ ip nat inside
+ ip access-group VISITEURS-IN in
+!
+ip nat log translations syslog
+ip nat inside source list NAT-VISITEURS interface GigabitEthernet0/0/0 overload
+ip forward-protocol nd
+no ip http server
+no ip http secure-server
+ip route 0.0.0.0 0.0.0.0 192.168.100.1
+ip ssh time-out 60
+ip ssh version 2
+ip ssh pubkey-chain
+  username svc-sauvegarde
+   key-hash ssh-rsa 83A06EA9ED0E60136B82C4E67157B694
+!
+!
+ip access-list standard ADMIN-SSH
+ permit 192.168.100.141
+ permit 192.168.100.211
+ deny   any log
+ip access-list standard NAT-VISITEURS
+ permit 10.2.3.0 0.0.0.255
+ permit 10.2.4.0 0.0.0.255
+ip access-list standard SNMP-ZABBIX
+ permit 192.168.100.210
+ deny   any log
+!
+ip access-list extended VISITEURS-IN
+ remark DHCP et diagnostic vers la passerelle visiteurs
+ permit udp any any eq bootps
+ permit icmp any host 10.2.3.1 echo
+ remark DNS : serveurs autorises par le cahier des charges
+ permit udp any host 10.2.1.10 eq domain
+ permit tcp any host 10.2.1.10 eq domain
+ permit udp any host 192.168.100.1 eq domain
+ remark Reseaux internes interdits (journalise vers Wazuh)
+ deny   ip any 10.0.0.0 0.255.255.255 log
+ deny   ip any 172.16.0.0 0.15.255.255 log
+ deny   ip any 192.168.0.0 0.0.255.255 log
+ remark Internet
+ permit ip any any
+!
+logging source-interface GigabitEthernet0/0/0
+logging host 192.168.100.209
+logging host 192.168.100.204 transport udp port 5516
+!
+!
+snmp-server group ZABBIX v3 priv read LECTURE access SNMP-ZABBIX
+snmp-server view LECTURE iso included
+snmp-server location Salle serveur RedOne - site pilote Paris
+snmp-server contact DSI RedOne - Reseau et Systeme
+snmp ifmib ifindex persist
+!
+!
+control-plane
+!
+banner login ^C ACCES RESERVE - RedOne. Equipement a usage professionnel. Toute connexion est journalisee (Wazuh). Acces non autorise interdit (art. 323-1 du Code penal). Contact : dpo@redone.com ^C
+!
+line con 0
+ exec-timeout 5 0
+ logging synchronous
+ login local
+ transport input none
+ stopbits 1
+line vty 0 4
+ access-class ADMIN-SSH in
+ exec-timeout 5 0
+ login local
+ transport input ssh
+!
+ntp source GigabitEthernet0/0/0
+ntp server 192.168.100.1
+ntp server 10.2.1.10 prefer
+wsma agent exec
+!
+wsma agent config
+!
+wsma agent filesys
+!
+wsma agent notify
+!
+!
+end
